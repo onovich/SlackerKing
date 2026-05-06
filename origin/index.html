@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>王冠之重：庸君生存指南 V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #12141a; 
+            color: #e2e8f0;
+            font-family: 'Georgia', serif; 
+            overflow: hidden; 
+        }
+        .parchment {
+            background: linear-gradient(135deg, #2a303c 0%, #191e24 100%);
+            border: 1px solid #4a5568;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        .btn-choice {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-choice:hover:not(:disabled) {
+            transform: translateX(5px);
+            background-color: #374151;
+            border-color: #d69e2e;
+        }
+        .btn-choice:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #1f2937;
+        }
+        .log-container::-webkit-scrollbar { width: 6px; }
+        .log-container::-webkit-scrollbar-track { background: #1a202c; }
+        .log-container::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
+        .bar-transition { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s; }
+        
+        /* 特效动画 */
+        @keyframes flashRed {
+            0% { background-color: rgba(220, 38, 38, 0.2); }
+            100% { background-color: transparent; }
+        }
+        .damage-flash { animation: flashRed 0.5s ease-out; }
+        
+        .floating-text {
+            position: absolute;
+            animation: floatUp 1.5s ease-out forwards;
+            pointer-events: none;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px black;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-30px); }
+        }
+    </style>
+</head>
+<body class="h-screen w-screen flex flex-col selection:bg-yellow-700 selection:text-white" id="main-body">
+
+    <!-- 顶部状态栏 -->
+    <header class="bg-gray-900 border-b border-gray-700 p-3 flex flex-wrap justify-between items-center shadow-lg z-10">
+        <div class="flex flex-col min-w-[200px]">
+            <h1 class="text-lg font-bold text-yellow-600 tracking-wider"><i class="fas fa-chess-king mr-2"></i>王冠之重 <span class="text-xs text-gray-500">V2</span></h1>
+            <span class="text-xs text-gray-400 font-mono mt-1" id="date-display">第 1 天 - 晨间理政</span>
+        </div>
+        
+        <!-- 核心资源 -->
+        <div class="flex space-x-4 md:space-x-8 flex-1 justify-center">
+            <div class="resource-group" data-type="treasury">
+                <div class="flex justify-between text-xs mb-1"><span class="text-yellow-400"><i class="fas fa-coins mr-1"></i>国库</span></div>
+                <div class="w-20 md:w-24 h-2 bg-gray-800 rounded-full border border-gray-700 relative">
+                    <div id="bar-treasury" class="h-full bg-yellow-500 bar-transition rounded-full" style="width: 50%;"></div>
+                </div>
+            </div>
+            <div class="resource-group" data-type="authority">
+                <div class="flex justify-between text-xs mb-1"><span class="text-purple-400"><i class="fas fa-crown mr-1"></i>权威</span></div>
+                <div class="w-20 md:w-24 h-2 bg-gray-800 rounded-full border border-gray-700">
+                    <div id="bar-authority" class="h-full bg-purple-500 bar-transition rounded-full" style="width: 50%;"></div>
+                </div>
+            </div>
+            <div class="resource-group" data-type="military">
+                <div class="flex justify-between text-xs mb-1"><span class="text-red-400"><i class="fas fa-shield-alt mr-1"></i>军力</span></div>
+                <div class="w-20 md:w-24 h-2 bg-gray-800 rounded-full border border-gray-700">
+                    <div id="bar-military" class="h-full bg-red-600 bar-transition rounded-full" style="width: 50%;"></div>
+                </div>
+            </div>
+            <div class="resource-group" data-type="favor">
+                <div class="flex justify-between text-xs mb-1"><span class="text-green-400"><i class="fas fa-users mr-1"></i>民心</span></div>
+                <div class="w-20 md:w-24 h-2 bg-gray-800 rounded-full border border-gray-700">
+                    <div id="bar-favor" class="h-full bg-green-500 bar-transition rounded-full" style="width: 50%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 个人状态 -->
+        <div class="flex space-x-6 border-l border-gray-700 pl-4 min-w-[200px] justify-end">
+            <div class="flex flex-col items-end group relative cursor-help">
+                <div class="flex justify-between w-full text-xs mb-1"><span class="text-red-300">压力 <i class="fas fa-brain"></i></span><span id="txt-stress" class="font-mono">20%</span></div>
+                <div class="w-24 h-2 bg-gray-800 rounded-full border border-gray-700">
+                    <div id="bar-stress" class="h-full bg-gradient-to-r from-orange-500 to-red-600 bar-transition rounded-full" style="width: 20%;"></div>
+                </div>
+                <!-- Tooltip -->
+                <div class="absolute hidden group-hover:block top-full right-0 mt-2 w-48 bg-gray-800 text-xs p-2 rounded border border-gray-600 z-50">
+                    达到100%将中风死亡。通过午后享乐降低。
+                </div>
+            </div>
+            <div class="flex flex-col items-end group relative cursor-help">
+                <div class="flex justify-between w-full text-xs mb-1"><span class="text-blue-300">精力 <i class="fas fa-bolt"></i></span><span id="txt-energy" class="font-mono">100</span></div>
+                <div class="w-24 h-2 bg-gray-800 rounded-full border border-gray-700">
+                    <div id="bar-energy" class="h-full bg-blue-500 bar-transition rounded-full" style="width: 100%;"></div>
+                </div>
+                <div class="absolute hidden group-hover:block top-full right-0 mt-2 w-48 bg-gray-800 text-xs p-2 rounded border border-gray-600 z-50">
+                    每天早晨恢复。处理政务需要消耗。耗尽只能选择“糊弄”。
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体内容区 -->
+    <main class="flex-1 flex overflow-hidden">
+        
+        <!-- 左侧/中央交互区 -->
+        <div class="flex-1 p-4 md:p-8 flex flex-col items-center justify-center relative overflow-y-auto" id="interaction-area">
+            
+            <!-- 视图 1：晨间奏章 -->
+            <div id="view-morning" class="parchment w-full max-w-3xl rounded-xl p-6 md:p-10 hidden flex-col transition-opacity duration-300">
+                <div class="flex items-center mb-6 border-b border-gray-700 pb-4">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center border-2 border-yellow-600 mr-4 shadow-inner" id="event-icon-container">
+                        <i class="fas fa-scroll text-2xl text-gray-400" id="event-icon"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-yellow-500" id="event-title">御前会议</h2>
+                        <span class="text-sm text-gray-500" id="event-tag">日常政务</span>
+                    </div>
+                </div>
+                
+                <p id="event-desc" class="text-gray-300 text-lg mb-8 leading-relaxed font-serif bg-gray-800/50 p-4 rounded border-l-4 border-gray-600">
+                    载入中...
+                </p>
+                
+                <div id="event-choices" class="flex flex-col space-y-4">
+                    <!-- 动态生成选项 -->
+                </div>
+            </div>
+
+            <!-- 视图 2：午后宫廷 -->
+            <div id="view-afternoon" class="w-full max-w-5xl hidden flex-col transition-opacity duration-300">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-yellow-500 tracking-widest"><i class="fab fa-fort-awesome mr-3"></i>皇家内廷</h2>
+                    <p class="text-gray-400 mt-2">剩余行动力： <span id="ap-display" class="text-blue-400 font-bold text-xl px-2 bg-gray-800 rounded"></span> 。是去体察民情，还是纵情声色？</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="location-grid">
+                    <!-- 动态渲染地点 -->
+                </div>
+                
+                <div class="mt-10 text-center">
+                    <button onclick="endAfternoon()" class="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white py-3 px-10 rounded-lg shadow-lg border border-gray-500 font-bold tracking-wide transition transform hover:-translate-y-1">
+                        回寝宫安歇 <i class="fas fa-bed ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 视图 3：夜晚结算 -->
+            <div id="view-night" class="parchment w-full max-w-2xl rounded-xl p-8 hidden flex-col transition-opacity duration-300">
+                <div class="text-center border-b border-gray-700 pb-4 mb-6">
+                    <i class="fas fa-moon text-5xl text-blue-400 mb-4 animate-pulse"></i>
+                    <h2 class="text-2xl font-bold text-gray-200">暗夜密报</h2>
+                </div>
+                
+                <div class="bg-gray-900 rounded-lg p-1 border border-gray-700 mb-8 max-h-[40vh] overflow-y-auto" id="night-summary-container">
+                    <ul id="night-summary" class="text-left text-gray-300 divide-y divide-gray-800">
+                        <!-- 结算内容 -->
+                    </ul>
+                </div>
+                
+                <button onclick="startNextDay()" class="w-full bg-yellow-700 hover:bg-yellow-600 text-white font-bold py-4 rounded-lg shadow-lg transition text-lg border border-yellow-500">
+                    迎接新的一天 (敲响晨钟)
+                </button>
+            </div>
+
+            <!-- 游戏结束视图 -->
+            <div id="view-gameover" class="parchment w-full max-w-xl rounded-xl p-8 hidden flex-col text-center border-red-800 border-4 shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+                <i class="fas fa-skull-crossbones text-7xl text-red-600 mb-6 drop-shadow-lg"></i>
+                <h2 class="text-4xl font-black text-gray-100 mb-2 tracking-widest">驾 崩</h2>
+                <div class="w-24 h-1 bg-red-600 mx-auto mb-6"></div>
+                
+                <h3 id="gameover-title" class="text-2xl text-yellow-500 mb-4 font-bold"></h3>
+                <p id="gameover-desc" class="text-gray-300 mb-8 text-lg leading-relaxed bg-gray-900/50 p-4 rounded"></p>
+                
+                <div class="grid grid-cols-2 gap-4 text-sm text-gray-400 mb-8 bg-gray-800 p-4 rounded text-left">
+                    <div>在位天数: <span id="go-days" class="text-white font-bold"></span></div>
+                    <div>最终声望: <span id="go-title" class="text-yellow-400 font-bold"></span></div>
+                </div>
+
+                <button onclick="location.reload()" class="bg-red-800 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition border border-red-500 w-full">
+                    <i class="fas fa-redo mr-2"></i>下一世再做庸君
+                </button>
+            </div>
+
+        </div>
+
+        <!-- 右侧日志 -->
+        <div class="w-80 bg-gray-900 border-l border-gray-700 flex flex-col hidden md:flex z-20 shadow-[-5px_0_15px_rgba(0,0,0,0.3)]">
+            <div class="p-4 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
+                <span class="font-bold text-yellow-600 tracking-wide"><i class="fas fa-book-open mr-2"></i>起居注</span>
+                <span class="text-xs text-gray-500">史官记录</span>
+            </div>
+            <div id="log-container" class="p-4 flex-1 overflow-y-auto log-container space-y-4 text-sm font-serif">
+                <!-- 日志条目 -->
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const state = {
+            day: 1,
+            phase: 'morning',
+            resources: { treasury: 50, authority: 50, military: 40, favor: 50 },
+            player: { stress: 20, energy: 100, ap: 2 },
+            flags: {}, 
+            history: [], 
+            isGameOver: false,
+            traits: { isSlippery: true } 
+        };
+
+        const ui = {
+            bars: {
+                treasury: document.getElementById('bar-treasury'),
+                authority: document.getElementById('bar-authority'),
+                military: document.getElementById('bar-military'),
+                favor: document.getElementById('bar-favor'),
+                stress: document.getElementById('bar-stress'),
+                energy: document.getElementById('bar-energy')
+            },
+            texts: {
+                stress: document.getElementById('txt-stress'),
+                energy: document.getElementById('txt-energy'),
+                date: document.getElementById('date-display'),
+                ap: document.getElementById('ap-display')
+            },
+            views: {
+                morning: document.getElementById('view-morning'),
+                afternoon: document.getElementById('view-afternoon'),
+                night: document.getElementById('view-night'),
+                gameover: document.getElementById('view-gameover')
+            },
+            log: document.getElementById('log-container'),
+            interactionArea: document.getElementById('interaction-area')
+        };
+
+        const eventDatabase = [
+            {
+                id: "e_tax_revolt",
+                tag: "内政危机", icon: "fa-fire", color: "text-red-500",
+                condition: (s) => s.resources.favor < 40 && !s.flags.tax_revolt_cd,
+                weight: 10,
+                title: "抗税暴乱",
+                desc: "财政大臣满头大汗地跑来：“陛下，南方行省拒绝缴纳新定的羊毛税！他们不仅赶走了税务官，还烧毁了粮仓！”",
+                choices: [
+                    {
+                        text: "【铁血镇压】派禁卫军去教训他们。 (耗精力, 需军力>30)",
+                        energy: 30, req: (s) => s.resources.military >= 30,
+                        effect: () => { modifyStats({treasury: 15, military: -10, favor: -15, stress: 10}); log("军队带回了税金和几百颗人头，但仇恨的种子已埋下。"); sSet('tax_revolt_cd', 5); }
+                    },
+                    {
+                        text: "【妥协免税】安抚他们，撤销税收令。 (耗精力, 损权威)",
+                        energy: 20, req: () => true,
+                        effect: () => { modifyStats({authority: -15, favor: 10}); log("你展现了软弱的仁慈。其他行省见状也开始考虑抗税。"); sSet('weak_king', (sGet('weak_king')||0)+1); sSet('tax_revolt_cd', 10); }
+                    },
+                    {
+                        text: "【踢皮球】让当地总督自己想办法。 (省精力, 埋隐患)",
+                        energy: 5, req: () => true,
+                        effect: () => { modifyStats({stress: -5}); sSet('southern_mess', 1); log("总督收到密信后破口大骂。南方的局势正在脱离控制。"); }
+                    }
+                ]
+            },
+            {
+                id: "e_envoy_arrival",
+                tag: "外交事件", icon: "fa-globe", color: "text-blue-400",
+                condition: (s) => s.day > 3 && !s.flags.envoy_active && !s.flags.envoy_cd,
+                weight: 8,
+                title: "北方汗国的使节",
+                desc: "一个裹着熊皮、浑身膻味的野蛮人使者大步走入大殿，甚至没有单膝下跪。“大汗听说南方的国王软弱可欺。交出十万金币岁币，否则铁蹄踏平此地！”",
+                choices: [
+                    {
+                        text: "【斩首示威】砍了他的头送回去！ (耗精力, 极高战争风险)",
+                        energy: 40, req: () => true,
+                        effect: () => { modifyStats({authority: 20, military: 10, favor: 10}); sSet('khan_war', 1); log("群臣为你的硬气欢呼，但你知道，战争不可避免了。"); }
+                    },
+                    {
+                        text: "【糊弄大法】赏赐他美酒，说国库空虚需筹措时日。 (低耗, 拖延)",
+                        energy: 10, req: () => true,
+                        effect: () => { modifyStats({treasury: -5}); sSet('envoy_active', 1); log("使者喝得酩酊大醉，暂时住在宫里。你争取到了一点时间。"); }
+                    },
+                    {
+                        text: "【装傻充愣】“你说什么？朕耳背，听不懂北方方言。”",
+                        energy: 5, req: () => true,
+                        effect: () => { modifyStats({authority: -10}); sSet('envoy_confused', 1); log("使者被你的无赖惊呆了，骂骂咧咧地暂时退下。"); }
+                    }
+                ]
+            },
+            {
+                id: "e_envoy_stay",
+                tag: "外交后续", icon: "fa-wine-glass", color: "text-purple-400",
+                condition: (s) => s.flags.envoy_active >= 3,
+                weight: 100, 
+                title: "赖着不走的使者",
+                desc: "北方使者已经在宫廷白吃白喝几天了，甚至调戏了女官。他再次上殿催问：“陛下，钱凑够了吗？”",
+                choices: [
+                    {
+                        text: "【破财消灾】给他钱，让他快滚。 (耗国库)",
+                        energy: 10, req: (s) => s.resources.treasury > 30,
+                        effect: () => { modifyStats({treasury: -30, authority: -10}); delete state.flags.envoy_active; sSet('envoy_cd', 15); log("使者带着黄金嚣张离去，宫廷尊严扫地。"); }
+                    },
+                    {
+                        text: "【暗下毒手】让情报总管在今晚的宴会上‘解决’他。 (耗精力, 风险极大)",
+                        energy: 30, req: () => true,
+                        effect: () => { 
+                            if(Math.random() > 0.4) {
+                                log("暗杀成功。对外宣称使者突发急病暴毙。大汗虽然怀疑，但暂时找不到借口发兵。");
+                                delete state.flags.envoy_active; sSet('envoy_cd', 20);
+                            } else {
+                                modifyStats({authority: -20, stress: 30}); sSet('khan_war', 1); delete state.flags.envoy_active;
+                                log("【灾难】毒酒被识破！使者连夜逃回北方，大汗震怒发兵！");
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                id: "e_magic_beast",
+                tag: "宫廷异闻", icon: "fa-dragon", color: "text-emerald-500",
+                condition: (s) => s.day > 5 && !s.flags.beast_seen,
+                weight: 5,
+                title: "进贡的狮鹫幼崽",
+                desc: "总督送来一只罕见的魔法生物幼崽，长着鹰头狮身。它极其凶猛，咬伤了三个驯兽师。",
+                choices: [
+                    {
+                        text: "【悉心培养】聘请法师驯养它作为皇家象征。 (重耗国库与精力)",
+                        energy: 40, req: (s) => s.resources.treasury > 20,
+                        effect: () => { modifyStats({treasury: -20, authority: 15}); sSet('has_griffon', 1); sSet('beast_seen', 1); log("虽然花钱如流水，但这只猛兽成为了王室威严的象征。"); }
+                    },
+                    {
+                        text: "【转送权臣】把它赐给骄横的军方将领。 (借刀杀人)",
+                        energy: 10, req: () => true,
+                        effect: () => { modifyStats({military: -5, stress: -10}); sSet('beast_seen', 1); log("几周后听说将军被狮鹫抓瞎了一只眼，在家休养。你暗自窃喜。"); }
+                    },
+                    {
+                        text: "【卖给黑市】这玩意儿肯定很值钱！ (庸君之选)",
+                        energy: 5, req: () => true,
+                        effect: () => { modifyStats({treasury: 25, authority: -5}); sSet('beast_seen', 1); log("学者们痛斥你的短视，但国库的充实让你充耳不闻。"); }
+                    }
+                ]
+            },
+            {
+                id: "e_corrupt_hand",
+                tag: "权力博弈", icon: "fa-balance-scale", color: "text-gray-400",
+                condition: (s) => s.resources.authority < 60 && !s.flags.hand_warned,
+                weight: 8,
+                title: "宰相的夹带",
+                desc: "你在批阅一堆公文时，发现宰相偷偷将一项‘盐业专卖权’批给了他自己的亲信商人。",
+                choices: [
+                    {
+                        text: "【雷霆震怒】撕毁公文，当庭训斥宰相！ (耗精力, 夺回权力)",
+                        energy: 30, req: () => true,
+                        effect: () => { modifyStats({authority: 15, treasury: 10, stress: 15}); sSet('hand_warned', 1); log("宰相跪地求饶。但你知道他不会善罢甘休。"); }
+                    },
+                    {
+                        text: "【睁只眼闭只眼】假装没看见，盖章通过。 (省精力, 丧失实权)",
+                        energy: 0, req: () => true,
+                        effect: () => { modifyStats({authority: -10}); sSet('hand_power', (sGet('hand_power')||0)+1); log("你签了字。宰相的权势越来越大，甚至连护卫都不把你放在眼里了。"); }
+                    },
+                    {
+                        text: "【分一杯羹】私下找他，要求分成。 (贪腐君王)",
+                        energy: 15, req: () => true,
+                        effect: () => { modifyStats({treasury: 15, authority: -5}); log("宰相心领神会地交出了‘分红’。你们成了狼狈为奸的同伙。"); }
+                    }
+                ]
+            }
+        ];
+
+        const defaultEvent = {
+            id: "e_daily_routine", title: "琐碎的政务", tag: "日常", icon: "fa-paperclip", color: "text-gray-500",
+            desc: "一堆鸡毛蒜皮的领地纠纷、税务报表和贵族间的互相攻讦堆在你的桌上。看着就让人头痛。",
+            choices: [
+                { text: "【仔细批阅】耗尽脑汁处理。 (-40精力, +少量权威/国库)", energy: 40, req: ()=>true, effect: () => { modifyStats({authority: 5, treasury: 5}); log("你累得半死，但总算干了点国王该干的事。"); } },
+                { text: "【全部准奏】闭着眼睛全盖章。 (-0精力, 埋下大量隐患)", energy: 0, req: ()=>true, effect: () => { modifyStats({authority: -5, favor: -5}); sSet('messy_admin', (sGet('messy_admin')||0)+1); log("文件像雪片一样发下去了，至于后果，以后再说。"); } }
+            ]
+        };
+
+        const locations = [
+            {
+                name: "王后寝宫", icon: "fa-crown", color: "text-yellow-400",
+                desc: "陪伴王后，维系旧贵族关系。(-精力, +权威)",
+                action: () => { modifyStats({energy: -15, authority: 10}); log("你与王后共进下午茶，听她抱怨其他贵族妇人。无聊但有用。"); }
+            },
+            {
+                name: "情妇庄园", icon: "fa-heart", color: "text-pink-500",
+                desc: "极致享乐，挥金如土。(-国库, 大幅-压力)",
+                action: () => { 
+                    if(state.resources.treasury >= 15) { modifyStats({treasury: -15, stress: -35, favor: -5}); log("醇酒、音乐与温柔乡。你暂时忘了王座的重压。"); }
+                    else { log("【囊中羞涩】情妇因为你没带贵重礼物而给了你闭门羹。"); modifyStats({stress: 10}); }
+                }
+            },
+            {
+                name: "皇家猎场", icon: "fa-horse", color: "text-green-600",
+                desc: "与将军们打猎。(-精力, +军力/降压)",
+                action: () => { modifyStats({energy: -20, military: 10, stress: -15}); log("你射中了一头公鹿。武将们大声喝彩。"); }
+            },
+            {
+                name: "情报暗室", icon: "fa-user-secret", color: "text-purple-600",
+                desc: "听取流言。(-钱, 获取隐患线索)",
+                action: () => { 
+                    modifyStats({treasury: -5}); 
+                    checkRumors();
+                }
+            },
+            {
+                name: "寝宫大睡", icon: "fa-bed", color: "text-blue-400",
+                desc: "什么都不做，纯躺平。(恢复精力, 降压)",
+                action: () => { modifyStats({energy: 40, stress: -10}); log("你屏退左右，睡了一个长长的午觉。"); }
+            }
+        ];
+
+        const nightEvents = [
+            {
+                id: "n_hand_coup",
+                check: (s) => s.flags.hand_power >= 4,
+                execute: () => { modifyStats({authority: -30, stress: 40}); sSet('hand_power', 0); return "【逼宫】宰相带着全副武装的卫兵要求你签署‘代政令’。你被迫交出了大部分权力！"; }
+            },
+            {
+                id: "n_khan_invasion",
+                check: (s) => s.flags.khan_war >= 1,
+                execute: () => {
+                    if(state.resources.military > 60) {
+                        modifyStats({military: -20, treasury: -20, favor: 20}); sSet('khan_war', 0);
+                        return "【战报】北方大军入侵！幸好我军准备充分，浴血奋战击退了敌军。";
+                    } else {
+                        modifyStats({military: -40, treasury: -30, stress: 50, favor: -20});
+                        return "【溃败】北方大军如入无人之境，边防军全线崩溃！首都危在旦夕！";
+                    }
+                }
+            },
+            {
+                id: "n_southern_revolt",
+                check: (s) => typeof s.flags.southern_mess === 'number' && s.flags.southern_mess >= 3,
+                execute: () => { modifyStats({favor: -20, treasury: -15, stress: 20}); delete state.flags.southern_mess; return "【叛乱】由于你的不作为，南方总督宣布独立！失去了南方的税收。"; }
+            },
+            {
+                id: "n_messy_karma",
+                check: (s) => s.flags.messy_admin >= 5,
+                execute: () => { modifyStats({authority: -10, favor: -10, treasury: -10}); sSet('messy_admin', 0); return "【恶果】你之前闭眼盖章的政令引发了巨大的行政混乱，各地怨声载道。"; }
+            }
+        ];
+
+        function sSet(key, val) { state.flags[key] = val; }
+        function sGet(key) { return state.flags[key]; }
+
+        function checkRumors() {
+            let found = false;
+            if(sGet('hand_power') > 1) { log("情报总管密报：宰相最近频繁密会城防军将领。"); found=true; }
+            if(sGet('southern_mess') > 0) { log("暗探回报：南方行省正在私下打造兵器。"); found=true; }
+            if(sGet('envoy_active')) { log("仆人说：北方使者在宴会上画了首都的布防图。"); found=true; }
+            if(!found) log("情报总管：今日并无要事，陛下。天下太平（大概）。");
+        }
+
+        function updateUI() {
+            ['treasury', 'authority', 'military', 'favor'].forEach(key => {
+                let val = Math.max(0, Math.min(100, state.resources[key]));
+                state.resources[key] = val;
+                const bar = ui.bars[key];
+                bar.style.width = `${val}%`;
+                
+                bar.className = 'h-full bar-transition rounded-full';
+                if(val <= 20) { bar.classList.add('bg-red-500', 'animate-pulse'); }
+                else if(key==='treasury') bar.classList.add('bg-yellow-500');
+                else if(key==='authority') bar.classList.add('bg-purple-500');
+                else if(key==='military') bar.classList.add('bg-red-600');
+                else bar.classList.add('bg-green-500');
+            });
+            
+            state.player.stress = Math.max(0, Math.min(100, state.player.stress));
+            state.player.energy = Math.max(0, Math.min(100, state.player.energy));
+            
+            ui.bars.stress.style.width = `${state.player.stress}%`;
+            ui.texts.stress.innerText = `${state.player.stress}%`;
+            if(state.player.stress > 80) ui.texts.stress.classList.add('text-red-500', 'animate-bounce');
+            else ui.texts.stress.classList.remove('text-red-500', 'animate-bounce');
+
+            ui.bars.energy.style.width = `${state.player.energy}%`;
+            ui.texts.energy.innerText = state.player.energy;
+            ui.texts.ap.innerText = state.player.ap;
+
+            ui.texts.date.innerText = `第 ${state.day} 天 - ${getPhaseName()}`;
+        }
+
+        function getPhaseName() {
+            if(state.phase === 'morning') return '御前会议';
+            if(state.phase === 'afternoon') return '自由巡幸';
+            return '深夜结算';
+        }
+
+        function modifyStats(changes) {
+            let dmg = false;
+            if (changes.treasury) { state.resources.treasury += changes.treasury; if(changes.treasury < -10) dmg = true; }
+            if (changes.authority) { state.resources.authority += changes.authority; if(changes.authority < -10) dmg = true; }
+            if (changes.military) { state.resources.military += changes.military; if(changes.military < -10) dmg = true; }
+            if (changes.favor) { state.resources.favor += changes.favor; if(changes.favor < -10) dmg = true; }
+            if (changes.stress) { state.player.stress += changes.stress; if(changes.stress > 15) dmg = true; }
+            if (changes.energy) state.player.energy += changes.energy;
+            
+            if(dmg && document.body) {
+                document.body.classList.add('damage-flash');
+                setTimeout(() => document.body.classList.remove('damage-flash'), 500);
+            }
+            
+            updateUI();
+            checkGameOver();
+        }
+
+        function log(text) {
+            const entry = document.createElement('div');
+            entry.className = "pl-3 py-2 border-l-2 border-gray-600 bg-gray-800/50 rounded hover:bg-gray-800 transition text-gray-300";
+            let formattedText = text.replace(/【.*?】/g, match => `<span class="text-yellow-500 font-bold">${match}</span>`);
+            entry.innerHTML = `<div class="text-xs text-gray-500 mb-1 border-b border-gray-700/50 pb-1 w-max">Day ${state.day}</div>${formattedText}`;
+            ui.log.appendChild(entry);
+            ui.log.scrollTop = ui.log.scrollHeight;
+        }
+
+        function switchView(viewName) {
+            ['morning', 'afternoon', 'night', 'gameover'].forEach(v => {
+                ui.views[v].classList.add('hidden');
+                ui.views[v].style.opacity = 0;
+            });
+            const target = ui.views[viewName];
+            target.classList.remove('hidden');
+            target.classList.add('flex');
+            void target.offsetWidth;
+            target.style.opacity = 1;
+        }
+
+        function getValidEvents() {
+            return eventDatabase.filter(e => e.condition(state) && !state.history.includes(e.id));
+        }
+
+        function startMorning() {
+            if(state.isGameOver) return;
+            state.phase = 'morning';
+            state.player.energy = 100; 
+            updateUI();
+            switchView('morning');
+
+            let pool = getValidEvents();
+            let evt = defaultEvent;
+            
+            if(pool.length > 0) {
+                let totalWeight = pool.reduce((sum, e) => sum + (e.weight || 1), 0);
+                let r = Math.random() * totalWeight;
+                for(let i=0; i<pool.length; i++) {
+                    r -= (pool[i].weight || 1);
+                    if(r <= 0) { evt = pool[i]; break; }
+                }
+                state.history.push(evt.id);
+                if(state.history.length > 5) state.history.shift();
+            }
+
+            document.getElementById('event-title').innerText = evt.title;
+            document.getElementById('event-desc').innerText = evt.desc;
+            document.getElementById('event-tag').innerText = evt.tag;
+            
+            const iconEl = document.getElementById('event-icon');
+            iconEl.className = `fas ${evt.icon} text-3xl ${evt.color}`;
+
+            const choicesContainer = document.getElementById('event-choices');
+            choicesContainer.innerHTML = '';
+
+            evt.choices.forEach(choice => {
+                const reqMet = choice.req(state);
+                const canAfford = state.player.energy >= choice.energy;
+                const isEnabled = reqMet && canAfford;
+
+                const btn = document.createElement('button');
+                btn.className = `btn-choice text-left p-4 rounded-lg border flex flex-col justify-between ${isEnabled ? 'bg-gray-800 border-gray-600 text-gray-200' : 'btn-choice:disabled border-gray-800 text-gray-500'}`;
+                btn.disabled = !isEnabled;
+                
+                let costHtml = '';
+                if(choice.energy > 0) costHtml = `<span class="bg-blue-900/50 text-blue-300 px-2 py-1 rounded text-xs border border-blue-800"><i class="fas fa-bolt mr-1"></i> -${choice.energy} 精力</span>`;
+                else costHtml = `<span class="bg-green-900/50 text-green-300 px-2 py-1 rounded text-xs border border-green-800">无消耗</span>`;
+
+                let reqHtml = '';
+                if(!reqMet) reqHtml = `<span class="text-red-500 text-xs mt-1"><i class="fas fa-lock mr-1"></i> 条件未满足</span>`;
+
+                btn.innerHTML = `
+                    <div class="font-bold mb-1">${choice.text.split('(')[0]}</div>
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="text-xs text-gray-400 italic">${choice.text.includes('(') ? '('+choice.text.split('(')[1] : ''}</div>
+                        ${costHtml}
+                    </div>
+                    ${reqHtml}
+                `;
+
+                if(isEnabled) {
+                    btn.onclick = function(e) {
+                        const rect = this.getBoundingClientRect();
+                        showFloatingText("-"+choice.energy, rect.right - 20, rect.top, "#60a5fa");
+
+                        modifyStats({energy: -choice.energy});
+                        choice.effect();
+                        
+                        Array.from(choicesContainer.children).forEach(b => b.disabled = true);
+                        
+                        setTimeout(startAfternoon, 1200);
+                    };
+                }
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function showFloatingText(text, x, y, color) {
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.style.left = x + 'px';
+            el.style.top = y + 'px';
+            el.style.color = color;
+            el.innerText = text;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        function startAfternoon() {
+            if(state.isGameOver) return;
+            state.phase = 'afternoon';
+            state.player.ap = 2; 
+            updateUI();
+            switchView('afternoon');
+            renderLocations();
+        }
+
+        function renderLocations() {
+            const grid = document.getElementById('location-grid');
+            
+            // 【BUG修复核心行】: 移除上一轮循环残留下来的禁用样式
+            grid.classList.remove('opacity-50', 'pointer-events-none');
+            
+            grid.innerHTML = '';
+            locations.forEach((loc, index) => {
+                const div = document.createElement('div');
+                div.className = "bg-gray-800/80 border border-gray-700 p-6 rounded-xl cursor-pointer hover:bg-gray-700 hover:border-gray-500 transition-all flex flex-col items-center text-center group shadow-md";
+                div.style.animationDelay = `${index * 0.1}s`;
+                div.innerHTML = `
+                    <div class="w-16 h-16 rounded-full bg-gray-900 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border border-gray-700">
+                        <i class="fas ${loc.icon} ${loc.color} text-2xl"></i>
+                    </div>
+                    <h3 class="font-bold text-gray-200 mb-2 text-lg">${loc.name}</h3>
+                    <p class="text-sm text-gray-400 line-clamp-2">${loc.desc}</p>
+                `;
+                div.onclick = function(e) {
+                    if (state.player.ap > 0) {
+                        state.player.ap--;
+                        
+                        const icon = this.querySelector('i');
+                        icon.classList.add('animate-ping');
+                        setTimeout(() => icon.classList.remove('animate-ping'), 500);
+
+                        loc.action();
+                        updateUI();
+                        
+                        if (state.player.ap <= 0) {
+                            grid.classList.add('opacity-50', 'pointer-events-none');
+                            setTimeout(endAfternoon, 800);
+                        }
+                    }
+                };
+                grid.appendChild(div);
+            });
+        }
+
+        function endAfternoon() {
+            if(state.isGameOver) return;
+            startNight();
+        }
+
+        function startNight() {
+            if(state.isGameOver) return;
+            state.phase = 'night';
+            updateUI();
+            switchView('night');
+
+            const summaryList = document.getElementById('night-summary');
+            summaryList.innerHTML = '';
+            let eventsOccurred = 0;
+
+            for(let key in state.flags) {
+                if(typeof state.flags[key] === 'number') {
+                    if(key.endsWith('_cd')) {
+                        state.flags[key]--;
+                        if(state.flags[key] <= 0) delete state.flags[key];
+                    } else {
+                        state.flags[key]++; 
+                    }
+                }
+            }
+
+            nightEvents.forEach(evt => {
+                if(evt.check(state)) {
+                    const msg = evt.execute();
+                    const li = document.createElement('li');
+                    li.className = "py-3 px-4 bg-red-900/20";
+                    li.innerHTML = `<div class="flex items-start"><i class="fas fa-exclamation-triangle text-red-500 mt-1 mr-3"></i> <span class="text-gray-200">${msg}</span></div>`;
+                    summaryList.appendChild(li);
+                    log(msg); 
+                    eventsOccurred++;
+                }
+            });
+
+            modifyStats({treasury: -3, stress: 8}); 
+            
+            const liBase = document.createElement('li');
+            liBase.className = "py-3 px-4";
+            liBase.innerHTML = `<div class="flex items-start"><i class="fas fa-hourglass-half text-gray-500 mt-1 mr-3"></i> <span class="text-gray-400">时间流逝。维持宫廷奢靡开销让国库减少，国王的偏头痛又加重了。</span></div>`;
+            summaryList.appendChild(liBase);
+
+            if(eventsOccurred === 0) {
+                const li = document.createElement('li');
+                li.className = "py-3 px-4";
+                li.innerHTML = `<div class="flex items-start"><i class="fas fa-star text-yellow-600 mt-1 mr-3"></i> <span class="text-gray-300">今夜宫廷罕见地平静。你享受了难得的安宁。</span></div>`;
+                summaryList.prepend(li);
+            }
+            
+            const container = document.getElementById('night-summary-container');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function startNextDay() {
+            state.day++;
+            startMorning();
+        }
+
+        function checkGameOver() {
+            if(state.isGameOver) return;
+
+            let cause = null;
+            let desc = "";
+            let title = "";
+
+            if(state.player.stress >= 100) {
+                cause = "中风崩殂"; title = "过劳死者";
+                desc = "无休止的政治斗争和巨大的压力摧毁了你的大脑。你在批阅奏章时倒地不起，甚至没人发现，直到你的宠物狗开始舔你的脸。";
+            } else if(state.resources.treasury <= 0) {
+                cause = "破产引发内乱"; title = "乞丐王";
+                desc = "国库连一枚铜币都倒不出来了。禁军因为欠饷打开了城门，愤怒的暴民冲进宫廷，将你扒光衣服吊死在广场上。";
+            } else if(state.resources.authority <= 0) {
+                cause = "权臣逼宫"; title = "傀儡";
+                desc = "你的懦弱让宰相彻底掌握了实权。他递给你一杯毒酒和一份退位诏书，你颤抖着喝下毒酒，结束了这糊弄的一生。";
+            } else if(state.resources.military <= 0) {
+                cause = "外敌破城"; title = "亡国之君";
+                desc = "敌国的铁蹄踏破了首都。你试图混在逃难的农民中溜走，但因为肚子太大且满身香水味被敌军斥候认出，沦为阶下囚。";
+            } else if(state.resources.favor <= 0) {
+                cause = "大革命"; title = "断头台贵宾";
+                desc = "人民受够了你的荒唐。他们自制了叫做‘断头台’的机器，并热情地邀请你成为了第一个体验者。咔嚓。";
+            }
+
+            if(cause) {
+                state.isGameOver = true;
+                log(`【驾崩】 ${cause}`);
+                document.getElementById('gameover-title').innerText = cause;
+                document.getElementById('gameover-desc').innerText = desc;
+                document.getElementById('go-days').innerText = state.day;
+                document.getElementById('go-title').innerText = title;
+                switchView('gameover');
+            }
+        }
+
+        updateUI();
+        setTimeout(startMorning, 500); 
+
+    </script>
+</body>
+</html>

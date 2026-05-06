@@ -1,0 +1,128 @@
+export const RESOURCE_KEYS = ['treasury', 'authority', 'military', 'favor'];
+
+export const RESOURCE_META = {
+  treasury: { label: '国库', icon: 'fa-coins', textColor: 'text-yellow-400', barColor: 'bg-yellow-500' },
+  authority: { label: '权威', icon: 'fa-crown', textColor: 'text-purple-400', barColor: 'bg-purple-500' },
+  military: { label: '军力', icon: 'fa-shield-alt', textColor: 'text-red-400', barColor: 'bg-red-600' },
+  favor: { label: '民心', icon: 'fa-users', textColor: 'text-green-400', barColor: 'bg-green-500' },
+};
+
+export const INITIAL_STATE = {
+  day: 1,
+  phase: 'morning',
+  currentEventId: null,
+  resources: { treasury: 50, authority: 50, military: 40, favor: 50 },
+  player: { stress: 20, energy: 100, ap: 2 },
+  flags: {},
+  history: [],
+  isGameOver: false,
+  traits: { isSlippery: true },
+  logs: [],
+  nightSummary: [],
+  gameOver: null,
+};
+
+export const eventDatabase = [
+  {
+    id: 'e_tax_revolt',
+    tag: '内政危机',
+    icon: 'fa-fire',
+    color: 'text-red-500',
+    conditionId: 'favor_low_no_revolt_cd',
+    weight: 10,
+    title: '抗税暴乱',
+    desc: '财政大臣满头大汗地跑来：“陛下，南方行省拒绝缴纳新定的羊毛税！他们不仅赶走了税务官，还烧毁了粮仓！”',
+    choices: [
+      { id: 'revolt_crush', text: '【铁血镇压】派禁卫军去教训他们。 (耗精力, 需军力>30)', energy: 30, requirementId: 'military_at_least_30', effectId: 'revolt_crush' },
+      { id: 'revolt_relief', text: '【妥协免税】安抚他们，撤销税收令。 (耗精力, 损权威)', energy: 20, requirementId: 'always', effectId: 'revolt_relief' },
+      { id: 'revolt_delegate', text: '【踢皮球】让当地总督自己想办法。 (省精力, 埋隐患)', energy: 5, requirementId: 'always', effectId: 'revolt_delegate' },
+    ],
+  },
+  {
+    id: 'e_envoy_arrival',
+    tag: '外交事件',
+    icon: 'fa-globe',
+    color: 'text-blue-400',
+    conditionId: 'envoy_arrival_ready',
+    weight: 8,
+    title: '北方汗国的使节',
+    desc: '一个裹着熊皮、浑身膻味的野蛮人使者大步走入大殿，甚至没有单膝下跪。“大汗听说南方的国王软弱可欺。交出十万金币岁币，否则铁蹄踏平此地！”',
+    choices: [
+      { id: 'envoy_execute', text: '【斩首示威】砍了他的头送回去！ (耗精力, 极高战争风险)', energy: 40, requirementId: 'always', effectId: 'envoy_execute' },
+      { id: 'envoy_delay', text: '【糊弄大法】赏赐他美酒，说国库空虚需筹措时日。 (低耗, 拖延)', energy: 10, requirementId: 'always', effectId: 'envoy_delay' },
+      { id: 'envoy_play_dumb', text: '【装傻充愣】“你说什么？朕耳背，听不懂北方方言。”', energy: 5, requirementId: 'always', effectId: 'envoy_play_dumb' },
+    ],
+  },
+  {
+    id: 'e_envoy_stay',
+    tag: '外交后续',
+    icon: 'fa-wine-glass',
+    color: 'text-purple-400',
+    conditionId: 'envoy_stay_due',
+    weight: 100,
+    title: '赖着不走的使者',
+    desc: '北方使者已经在宫廷白吃白喝几天了，甚至调戏了女官。他再次上殿催问：“陛下，钱凑够了吗？”',
+    choices: [
+      { id: 'envoy_pay_off', text: '【破财消灾】给他钱，让他快滚。 (耗国库)', energy: 10, requirementId: 'treasury_above_30', effectId: 'envoy_pay_off' },
+      { id: 'envoy_assassinate', text: '【暗下毒手】让情报总管在今晚的宴会上“解决”他。 (耗精力, 风险极大)', energy: 30, requirementId: 'always', effectId: 'envoy_assassinate' },
+    ],
+  },
+  {
+    id: 'e_magic_beast',
+    tag: '宫廷异闻',
+    icon: 'fa-dragon',
+    color: 'text-emerald-500',
+    conditionId: 'magic_beast_ready',
+    weight: 5,
+    title: '进贡的狮鹫幼崽',
+    desc: '总督送来一只罕见的魔法生物幼崽，长着鹰头狮身。它极其凶猛，咬伤了三个驯兽师。',
+    choices: [
+      { id: 'beast_raise', text: '【悉心培养】聘请法师驯养它作为皇家象征。 (重耗国库与精力)', energy: 40, requirementId: 'treasury_above_20', effectId: 'beast_raise' },
+      { id: 'beast_gift', text: '【转送权臣】把它赐给骄横的军方将领。 (借刀杀人)', energy: 10, requirementId: 'always', effectId: 'beast_gift' },
+      { id: 'beast_sell', text: '【卖给黑市】这玩意儿肯定很值钱！ (庸君之选)', energy: 5, requirementId: 'always', effectId: 'beast_sell' },
+    ],
+  },
+  {
+    id: 'e_corrupt_hand',
+    tag: '权力博弈',
+    icon: 'fa-balance-scale',
+    color: 'text-gray-400',
+    conditionId: 'corrupt_hand_ready',
+    weight: 8,
+    title: '宰相的夹带',
+    desc: '你在批阅一堆公文时，发现宰相偷偷将一项“盐业专卖权”批给了他自己的亲信商人。',
+    choices: [
+      { id: 'hand_scold', text: '【雷霆震怒】撕毁公文，当庭训斥宰相！ (耗精力, 夺回权力)', energy: 30, requirementId: 'always', effectId: 'hand_scold' },
+      { id: 'hand_ignore', text: '【睁只眼闭只眼】假装没看见，盖章通过。 (省精力, 丧失实权)', energy: 0, requirementId: 'always', effectId: 'hand_ignore' },
+      { id: 'hand_profit', text: '【分一杯羹】私下找他，要求分成。 (贪腐君王)', energy: 15, requirementId: 'always', effectId: 'hand_profit' },
+    ],
+  },
+];
+
+export const defaultEvent = {
+  id: 'e_daily_routine',
+  title: '琐碎的政务',
+  tag: '日常',
+  icon: 'fa-paperclip',
+  color: 'text-gray-500',
+  desc: '一堆鸡毛蒜皮的领地纠纷、税务报表和贵族间的互相攻讦堆在你的桌上。看着就让人头痛。',
+  choices: [
+    { id: 'daily_review', text: '【仔细批阅】耗尽脑汁处理。 (-40精力, +少量权威/国库)', energy: 40, requirementId: 'always', effectId: 'daily_review' },
+    { id: 'daily_stamp', text: '【全部准奏】闭着眼睛全盖章。 (-0精力, 埋下大量隐患)', energy: 0, requirementId: 'always', effectId: 'daily_stamp' },
+  ],
+};
+
+export const locations = [
+  { id: 'visit_queen', name: '王后寝宫', icon: 'fa-crown', color: 'text-yellow-400', desc: '陪伴王后，维系旧贵族关系。(-精力, +权威)', actionId: 'visit_queen' },
+  { id: 'visit_mistress', name: '情妇庄园', icon: 'fa-heart', color: 'text-pink-500', desc: '极致享乐，挥金如土。(-国库, 大幅-压力)', actionId: 'visit_mistress' },
+  { id: 'visit_hunt', name: '皇家猎场', icon: 'fa-horse', color: 'text-green-600', desc: '与将军们打猎。(-精力, +军力/降压)', actionId: 'visit_hunt' },
+  { id: 'visit_spy', name: '情报暗室', icon: 'fa-user-secret', color: 'text-purple-600', desc: '听取流言。(-钱, 获取隐患线索)', actionId: 'visit_spy' },
+  { id: 'visit_sleep', name: '寝宫大睡', icon: 'fa-bed', color: 'text-blue-400', desc: '什么都不做，纯躺平。(恢复精力, 降压)', actionId: 'visit_sleep' },
+];
+
+export const nightEvents = [
+  { id: 'n_hand_coup', checkId: 'hand_coup', resultId: 'hand_coup' },
+  { id: 'n_khan_invasion', checkId: 'khan_invasion', resultId: 'khan_invasion' },
+  { id: 'n_southern_revolt', checkId: 'southern_revolt', resultId: 'southern_revolt' },
+  { id: 'n_messy_karma', checkId: 'messy_karma', resultId: 'messy_karma' },
+];

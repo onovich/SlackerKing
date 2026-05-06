@@ -1,0 +1,98 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #12141a;
+  color: #e2e8f0;
+  font-family: Georgia, serif;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  background-color: #12141a;
+}
+
+.parchment {
+  background: linear-gradient(135deg, #2a303c 0%, #191e24 100%);
+  border: 1px solid #4a5568;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+.btn-choice {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.btn-choice:hover:not(:disabled) {
+  transform: translateX(5px);
+  background-color: #374151;
+  border-color: #d69e2e;
+}
+
+.log-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.log-container::-webkit-scrollbar-track {
+  background: #1a202c;
+}
+
+.log-container::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 3px;
+}
+
+.bar-transition {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+}
+
+@keyframes flashRed {
+  0% {
+    background-color: rgba(220, 38, 38, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.damage-flash {
+  animation: flashRed 0.5s ease-out;
+}
+
+.floating-text {
+  position: absolute;
+  pointer-events: none;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px black;
+  animation: floatUp 1.5s ease-out forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+.two-line-clamp {
+  line-clamp: 2;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
