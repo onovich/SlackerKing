@@ -12,13 +12,14 @@ const iconClassMap = {
 
 export function NightScreen({ summary, onNextDay }) {
   return (
-    <section className="parchment flex w-full max-w-2xl flex-col rounded-xl p-8">
+    <section className="parchment flex w-full max-w-2xl flex-col rounded-xl p-8 xl:max-w-4xl xl:p-10">
       <div className="mb-6 border-b border-gray-700 pb-4 text-center">
         <i className="fas fa-moon mb-4 animate-pulse text-5xl text-blue-400" />
         <h2 className="text-2xl font-bold text-gray-200">暗夜密报</h2>
+        <p className="mt-3 hidden text-sm text-gray-500 xl:block">桌面端可按 Enter 继续，滚轮浏览整晚的连锁后果。</p>
       </div>
 
-      <div className="mb-8 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-700 bg-gray-900 p-1">
+      <div className="mb-8 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-700 bg-gray-900 p-1 xl:max-h-[48vh]">
         <ul className="divide-y divide-gray-800 text-left text-gray-300">
           {summary.map((item) => (
             <li key={item.id} className={`px-4 py-3 ${toneClassMap[item.tone] ?? ''}`}>

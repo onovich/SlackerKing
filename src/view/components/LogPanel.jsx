@@ -13,7 +13,7 @@ function renderHighlightedText(text) {
 
 export function LogPanel({ logs }) {
   return (
-    <aside className="z-20 hidden w-80 flex-col border-l border-gray-700 bg-gray-900 shadow-[-5px_0_15px_rgba(0,0,0,0.3)] md:flex">
+    <aside className="z-20 hidden w-80 flex-col border-l border-gray-700 bg-gray-900 shadow-[-5px_0_15px_rgba(0,0,0,0.3)] md:flex xl:w-[23rem] xl:overflow-hidden xl:rounded-[24px] xl:border xl:border-gray-700/80 xl:shadow-[0_16px_36px_rgba(0,0,0,0.3)]">
       <div className="flex items-center justify-between border-b border-gray-700 bg-gray-800 p-4">
         <span className="font-bold tracking-wide text-yellow-600">
           <i className="fas fa-book-open mr-2" />

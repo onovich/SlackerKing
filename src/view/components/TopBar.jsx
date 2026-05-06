@@ -47,7 +47,7 @@ export function TopBar({ gameState }) {
   const stressAlert = gameState.player.stress > 80;
 
   return (
-    <header className="z-10 flex flex-wrap items-center justify-between border-b border-gray-700 bg-gray-900 p-3 shadow-lg">
+    <header className="z-10 flex flex-wrap items-center justify-between border-b border-gray-700 bg-gray-900 p-3 shadow-lg xl:rounded-[24px] xl:border xl:px-5 xl:py-4 xl:shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
       <div className="flex min-w-[200px] flex-col">
         <h1 className="text-lg font-bold tracking-wider text-yellow-600">
           <i className="fas fa-chess-king mr-2" />
@@ -57,13 +57,13 @@ export function TopBar({ gameState }) {
         <span className="mt-1 text-xs font-mono text-gray-400">第 {gameState.day} 天 - {getPhaseName(gameState.phase)}</span>
       </div>
 
-      <div className="flex flex-1 justify-center space-x-4 md:space-x-8">
+      <div className="mt-3 flex w-full flex-wrap justify-start gap-x-4 gap-y-2 md:mt-0 md:flex-1 md:justify-center md:space-x-0 xl:w-auto xl:flex-nowrap xl:gap-x-7">
         {RESOURCE_KEYS.map((key) => (
           <ResourceMeter key={key} type={key} value={gameState.resources[key]} />
         ))}
       </div>
 
-      <div className="min-w-[200px] justify-end space-x-6 border-l border-gray-700 pl-4 hidden md:flex">
+      <div className="hidden min-w-[200px] justify-end space-x-6 border-l border-gray-700 pl-4 md:flex xl:min-w-[240px]">
         <StatusMeter
           label="压力"
           icon="fa-brain"

@@ -1,6 +1,6 @@
 export function GameOverScreen({ gameOver, day, onRestart }) {
   return (
-    <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+    <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
       <i className="fas fa-skull-crossbones mb-6 text-7xl text-red-600 drop-shadow-lg" />
       <h2 className="mb-2 text-4xl font-black tracking-widest text-gray-100">驾 崩</h2>
       <div className="mx-auto mb-6 h-1 w-24 bg-red-600" />
@@ -24,6 +24,7 @@ export function GameOverScreen({ gameOver, day, onRestart }) {
       >
         <i className="fas fa-redo mr-2" />下一世再做庸君
       </button>
+      <div className="mt-4 hidden text-sm text-gray-500 xl:block">桌面端可按 R 快速重开。</div>
     </section>
   );
 }
