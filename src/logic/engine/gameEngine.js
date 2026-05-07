@@ -162,12 +162,12 @@ export function isMorningChoiceAvailable(state, choice) {
 
 const choiceEffects = {
   revolt_crush: (state) => {
-    applyStatChanges(state, { treasury: 15, military: -10, favor: -15, stress: 10 });
-    pushLog(state, '军队带回了税金和几百颗人头，但仇恨的种子已埋下。');
+    applyStatChanges(state, { treasury: 18, authority: 5, military: -10, favor: -15, stress: 10 });
+    pushLog(state, '军队带回了税金和几百颗人头。你短期内稳住了朝局，但仇恨的种子已埋下。');
     setFlag(state, 'tax_revolt_cd', 5);
   },
   revolt_relief: (state) => {
-    applyStatChanges(state, { authority: -15, favor: 10 });
+    applyStatChanges(state, { treasury: -5, authority: -10, favor: 12 });
     pushLog(state, '你展现了软弱的仁慈。其他行省见状也开始考虑抗税。');
     setFlag(state, 'weak_king', (getFlag(state, 'weak_king') || 0) + 1);
     setFlag(state, 'tax_revolt_cd', 10);
@@ -178,19 +178,19 @@ const choiceEffects = {
     pushLog(state, '总督收到密信后破口大骂。南方的局势正在脱离控制。');
   },
   envoy_execute: (state) => {
-    applyStatChanges(state, { authority: 20, military: 10, favor: 10 });
+    applyStatChanges(state, { authority: 18, military: 12, favor: 6 });
     setFlag(state, 'khan_war', 1);
     pushLog(state, '群臣为你的硬气欢呼，但你知道，战争不可避免了。');
   },
   envoy_delay: (state) => {
-    applyStatChanges(state, { treasury: -5 });
+    applyStatChanges(state, { treasury: -8 });
     setFlag(state, 'envoy_active', 1);
     pushLog(state, '使者喝得酩酊大醉，暂时住在宫里。你争取到了一点时间。');
   },
   envoy_play_dumb: (state) => {
-    applyStatChanges(state, { authority: -10 });
-    setFlag(state, 'envoy_confused', 1);
-    pushLog(state, '使者被你的无赖惊呆了，骂骂咧咧地暂时退下。');
+    applyStatChanges(state, { authority: -12 });
+    setFlag(state, 'envoy_active', 1);
+    pushLog(state, '使者被你的无赖惊呆了，但他显然没被打发走。宫里很快就会继续为这块烫手山芋付代价。');
   },
   envoy_pay_off: (state) => {
     applyStatChanges(state, { treasury: -30, authority: -10 });
@@ -212,18 +212,18 @@ const choiceEffects = {
     pushLog(state, '【灾难】毒酒被识破！使者连夜逃回北方，大汗震怒发兵！');
   },
   beast_raise: (state) => {
-    applyStatChanges(state, { treasury: -20, authority: 15 });
+    applyStatChanges(state, { treasury: -20, authority: 18, military: 4 });
     setFlag(state, 'has_griffon', 1);
     setFlag(state, 'beast_seen', 1);
     pushLog(state, '虽然花钱如流水，但这只猛兽成为了王室威严的象征。');
   },
   beast_gift: (state) => {
-    applyStatChanges(state, { military: -5, stress: -10 });
+    applyStatChanges(state, { authority: 4, military: -3, stress: -8 });
     setFlag(state, 'beast_seen', 1);
     pushLog(state, '几周后听说将军被狮鹫抓瞎了一只眼，在家休养。你暗自窃喜。');
   },
   beast_sell: (state) => {
-    applyStatChanges(state, { treasury: 25, authority: -5 });
+    applyStatChanges(state, { treasury: 22, authority: -8 });
     setFlag(state, 'beast_seen', 1);
     pushLog(state, '学者们痛斥你的短视，但国库的充实让你充耳不闻。');
   },
@@ -238,11 +238,12 @@ const choiceEffects = {
     pushLog(state, '你签了字。宰相的权势越来越大，甚至连护卫都不把你放在眼里了。');
   },
   hand_profit: (state) => {
-    applyStatChanges(state, { treasury: 15, authority: -5 });
-    pushLog(state, '宰相心领神会地交出了“分红”。你们成了狼狈为奸的同伙。');
+    applyStatChanges(state, { treasury: 12, authority: -6 });
+    setFlag(state, 'hand_power', (getFlag(state, 'hand_power') || 0) + 1);
+    pushLog(state, '宰相心领神会地交出了“分红”。你们成了狼狈为奸的同伙，而他的胆子也跟着更大了。');
   },
   daily_review: (state) => {
-    applyStatChanges(state, { authority: 5, treasury: 5 });
+    applyStatChanges(state, { authority: 6, treasury: 4, favor: 1, stress: 4 });
     pushLog(state, '你累得半死，但总算干了点国王该干的事。');
   },
   daily_stamp: (state) => {

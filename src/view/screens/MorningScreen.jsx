@@ -1,3 +1,5 @@
+import { CHOICE_TIER_META } from '../../data/gameContent';
+
 export function MorningScreen({ event, availability, onChoose, locked }) {
   return (
     <section className="parchment flex w-full max-w-3xl flex-col rounded-xl p-6 md:p-10 xl:max-w-6xl xl:flex-row xl:gap-8 xl:p-8">
@@ -30,6 +32,7 @@ export function MorningScreen({ event, availability, onChoose, locked }) {
         {event.choices.map((choice) => {
           const isEnabled = !locked && Boolean(availability[choice.id]);
           const [label, detail] = choice.text.split('(');
+          const tierMeta = CHOICE_TIER_META[choice.tierId] ?? CHOICE_TIER_META.mid;
 
           return (
             <button
@@ -45,7 +48,15 @@ export function MorningScreen({ event, availability, onChoose, locked }) {
               }}
             >
               <div className="mb-1 flex items-start justify-between gap-4">
-                <span className="font-bold xl:text-lg">{label.trim()}</span>
+                <div>
+                  <span className="font-bold xl:text-lg">{label.trim()}</span>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span className={`rounded border px-2 py-1 text-[11px] ${tierMeta.badgeClass}`}>
+                      {tierMeta.label}
+                    </span>
+                    <span className="text-[11px] text-gray-500">{tierMeta.hint}</span>
+                  </div>
+                </div>
                 <span className="hidden rounded border border-gray-600 bg-gray-900/80 px-2 py-1 font-mono text-xs text-gray-300 lg:inline-flex">
                   {event.choices.indexOf(choice) + 1}
                 </span>
