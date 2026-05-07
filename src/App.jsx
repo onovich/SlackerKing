@@ -5,6 +5,7 @@ import { locations } from './data/gameContent';
 import { TopBar } from './view/components/TopBar';
 import { DesktopCompanion } from './view/components/DesktopCompanion';
 import { LogPanel } from './view/components/LogPanel';
+import { ResumePrompt } from './view/components/ResumePrompt';
 import { MorningScreen } from './view/screens/MorningScreen';
 import { AfternoonScreen } from './view/screens/AfternoonScreen';
 import { NightScreen } from './view/screens/NightScreen';
@@ -26,6 +27,7 @@ export default function App() {
   const {
     gameState,
     runRecords,
+    resumePrompt,
     currentEvent,
     floatingTexts,
     damageFlash,
@@ -36,6 +38,8 @@ export default function App() {
     endAfternoon,
     nextDay,
     restart,
+    continueSavedRun,
+    discardSavedRun,
   } = useGameSession();
 
   useEffect(() => {
@@ -57,6 +61,10 @@ export default function App() {
   useEffect(() => {
     const onKeyDown = (event) => {
       if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      if (resumePrompt) {
         return;
       }
 
@@ -108,10 +116,10 @@ export default function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [choiceAvailability, chooseLocation, chooseMorningOption, currentEvent.choices, endAfternoon, gameState.isGameOver, gameState.phase, nextDay, restart]);
+  }, [choiceAvailability, chooseLocation, chooseMorningOption, currentEvent.choices, endAfternoon, gameState.isGameOver, gameState.phase, nextDay, restart, resumePrompt]);
 
   return (
-    <div className={`app-shell flex h-screen w-screen flex-col selection:bg-yellow-700 selection:text-white ${damageFlash ? 'damage-flash' : ''}`}>
+    <div className={`app-shell relative flex h-screen w-screen flex-col selection:bg-yellow-700 selection:text-white ${damageFlash ? 'damage-flash' : ''}`}>
       <div className="flex h-full w-full flex-col xl:mx-auto xl:max-w-[1720px] xl:px-5 xl:py-4">
         <TopBar gameState={gameState} visibleRisks={visibleRisks} />
 
@@ -155,6 +163,15 @@ export default function App() {
           <LogPanel logs={gameState.logs} />
         </main>
       </div>
+
+      {resumePrompt ? (
+        <ResumePrompt
+          savedRun={resumePrompt}
+          currentEvent={currentEvent}
+          onContinue={continueSavedRun}
+          onDiscard={discardSavedRun}
+        />
+      ) : null}
     </div>
   );
 }

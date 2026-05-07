@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentEvent, initializeGameState, resolveLocationVisit, resolveMorningChoice, startNextDay, transitionState } from '../engine/gameEngine';
+import { clearCurrentRun, loadCurrentRun, saveCurrentRun } from '../storage/currentRun';
 import { loadRunRecords, recordFinishedRun, saveRunRecords } from '../storage/runRecords';
 
 function createFloatingText(text, point, color) {
@@ -13,12 +14,14 @@ function createFloatingText(text, point, color) {
 }
 
 export function useGameSession() {
-  const [gameState, setGameState] = useState(() => initializeGameState());
+  const initialSavedRun = loadCurrentRun();
+  const [gameState, setGameState] = useState(() => initialSavedRun?.gameState ?? initializeGameState());
   const [runRecords, setRunRecords] = useState(() => loadRunRecords());
   const [floatingTexts, setFloatingTexts] = useState([]);
   const [damageFlash, setDamageFlash] = useState(false);
   const [choiceLocked, setChoiceLocked] = useState(false);
   const [locationLocked, setLocationLocked] = useState(false);
+  const [resumePrompt, setResumePrompt] = useState(() => initialSavedRun);
   const gameStateRef = useRef(gameState);
   const timeoutsRef = useRef([]);
   const recordedRunKeyRef = useRef(null);
@@ -67,6 +70,19 @@ export function useGameSession() {
       timeoutsRef.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    if (resumePrompt) {
+      return;
+    }
+
+    if (gameState.isGameOver) {
+      clearCurrentRun();
+      return;
+    }
+
+    saveCurrentRun(gameState);
+  }, [gameState, resumePrompt]);
 
   useEffect(() => {
     if (!gameState.isGameOver || !gameState.gameOver) {
@@ -165,12 +181,29 @@ export function useGameSession() {
     setDamageFlash(false);
     setChoiceLocked(false);
     setLocationLocked(false);
+    clearCurrentRun();
     setGameState(initializeGameState());
+  };
+
+  const continueSavedRun = () => {
+    setResumePrompt(null);
+  };
+
+  const discardSavedRun = () => {
+    clearCurrentRun();
+    recordedRunKeyRef.current = null;
+    setFloatingTexts([]);
+    setDamageFlash(false);
+    setChoiceLocked(false);
+    setLocationLocked(false);
+    setGameState(initializeGameState());
+    setResumePrompt(null);
   };
 
   return {
     gameState,
     runRecords,
+    resumePrompt,
     currentEvent,
     floatingTexts,
     damageFlash,
@@ -181,5 +214,7 @@ export function useGameSession() {
     endAfternoon,
     nextDay,
     restart,
+    continueSavedRun,
+    discardSavedRun,
   };
 }
