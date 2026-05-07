@@ -309,15 +309,22 @@ function pickSpyTarget(state) {
     .sort((left, right) => right.progress - left.progress)[0]?.key ?? null;
 }
 
+function getMorningEnergyByStress(stress) {
+  if (stress >= 85) return 70;
+  if (stress >= 65) return 80;
+  if (stress >= 45) return 90;
+  return 100;
+}
+
 const locationActions = {
   visit_queen: (state) => {
-    applyStatChanges(state, { energy: -15, authority: 10 });
-    pushLog(state, '你与王后共进下午茶，听她抱怨其他贵族妇人。无聊但有用。');
+    applyStatChanges(state, { energy: -10, authority: 8, favor: 4 });
+    pushLog(state, '你与王后共进下午茶，顺手安抚了几家心怀不满的旧贵族。无聊，但确实稳住了局面。');
   },
   visit_mistress: (state) => {
-    if (state.resources.treasury >= 15) {
-      applyStatChanges(state, { treasury: -15, stress: -35, favor: -5 });
-      pushLog(state, '醇酒、音乐与温柔乡。你暂时忘了王座的重压。');
+    if (state.resources.treasury >= 20) {
+      applyStatChanges(state, { treasury: -20, stress: -28, favor: -8, authority: -5 });
+      pushLog(state, '醇酒、音乐与温柔乡让你彻底松了口气，但宫里已经有人开始议论陛下又荒唐了一整晚。');
       return;
     }
 
@@ -325,16 +332,16 @@ const locationActions = {
     applyStatChanges(state, { stress: 10 });
   },
   visit_hunt: (state) => {
-    applyStatChanges(state, { energy: -20, military: 10, stress: -15 });
-    pushLog(state, '你射中了一头公鹿。武将们大声喝彩。');
+    applyStatChanges(state, { energy: -18, treasury: -5, military: 9, stress: -10 });
+    pushLog(state, '你射中了一头公鹿。武将们大声喝彩，但这场排场不小的围猎也实打实烧掉了一笔钱。');
   },
   visit_spy: (state) => {
     applyStatChanges(state, { treasury: -5 });
     resolveRumors(state);
   },
   visit_sleep: (state) => {
-    applyStatChanges(state, { energy: 40, stress: -10 });
-    pushLog(state, '你屏退左右，睡了一个长长的午觉。');
+    applyStatChanges(state, { energy: 35, stress: -12, authority: -4 });
+    pushLog(state, '你屏退左右，睡了一个长长的午觉。人是缓过来了，但宫里难免又多了几句“陛下今日还是没露面”的闲话。');
   },
 };
 
@@ -496,7 +503,7 @@ export function prepareMorning(currentState) {
   }
 
   state.phase = 'morning';
-  state.player.energy = 100;
+  state.player.energy = getMorningEnergyByStress(state.player.stress);
   state.nightSummary = [];
   state.dailyChanges = { ...INITIAL_DAILY_CHANGES };
 

@@ -176,11 +176,11 @@ export const defaultEvent = {
 };
 
 export const locations = [
-  { id: 'visit_queen', name: '王后寝宫', icon: 'fa-crown', color: 'text-yellow-400', desc: '陪伴王后，维系旧贵族关系。(-精力, +权威)', actionId: 'visit_queen' },
-  { id: 'visit_mistress', name: '情妇庄园', icon: 'fa-heart', color: 'text-pink-500', desc: '极致享乐，挥金如土。(-国库, 大幅-压力)', actionId: 'visit_mistress' },
-  { id: 'visit_hunt', name: '皇家猎场', icon: 'fa-horse', color: 'text-green-600', desc: '与将军们打猎。(-精力, +军力/降压)', actionId: 'visit_hunt' },
+  { id: 'visit_queen', name: '王后寝宫', icon: 'fa-crown', color: 'text-yellow-400', desc: '陪伴王后，安抚旧贵族。(-少量精力, +权威/民心)', actionId: 'visit_queen' },
+  { id: 'visit_mistress', name: '情妇庄园', icon: 'fa-heart', color: 'text-pink-500', desc: '极致享乐，交换政治代价。(-更多国库, 大幅-压力, -权威/民心)', actionId: 'visit_mistress' },
+  { id: 'visit_hunt', name: '皇家猎场', icon: 'fa-horse', color: 'text-green-600', desc: '与将军们打猎。(-精力/少量国库, +军力/降压)', actionId: 'visit_hunt' },
   { id: 'visit_spy', name: '情报暗室', icon: 'fa-user-secret', color: 'text-purple-600', desc: '听取流言。(-钱, 获取隐患线索)', actionId: 'visit_spy' },
-  { id: 'visit_sleep', name: '寝宫大睡', icon: 'fa-bed', color: 'text-blue-400', desc: '什么都不做，纯躺平。(恢复精力, 降压)', actionId: 'visit_sleep' },
+  { id: 'visit_sleep', name: '寝宫大睡', icon: 'fa-bed', color: 'text-blue-400', desc: '什么都不做，纯躺平。(恢复精力, 降压, 轻微失威)', actionId: 'visit_sleep' },
 ];
 
 export const nightEvents = [
