@@ -85,12 +85,12 @@ export function TopBar({ gameState, visibleRisks, onOpenLog, onOpenMenu }) {
   const stressAlert = gameState.player.stress > 80;
 
   return (
-    <header className="z-10 flex flex-wrap items-start justify-between gap-3 border-b border-gray-700 bg-gray-900 p-3 shadow-lg xl:rounded-[24px] xl:border xl:px-5 xl:py-4 xl:shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+    <header className="z-10 flex flex-wrap items-start justify-between gap-2 border-b border-gray-700 bg-gray-900 p-3 shadow-lg xl:rounded-[24px] xl:border xl:px-5 xl:py-4 xl:shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
       <div className="min-w-0 flex-1">
-        <h1 className="text-lg font-bold tracking-wider text-yellow-600">
+        <h1 className="text-base font-bold tracking-[0.16em] text-yellow-600 sm:text-lg">
           <i className="fas fa-chess-king mr-2" />
           王冠之重
-          <span className="ml-2 text-xs text-gray-500">SlackerKing</span>
+          <span className="ml-2 hidden text-xs text-gray-500 sm:inline">SlackerKing</span>
         </h1>
         <span className="mt-1 text-xs font-mono text-gray-400">第 {gameState.day} 天 - {getPhaseName(gameState.phase)}</span>
         <RiskBadge visibleRisks={visibleRisks} />
@@ -111,11 +111,11 @@ export function TopBar({ gameState, visibleRisks, onOpenLog, onOpenMenu }) {
           className="inline-flex items-center gap-2 rounded-full border border-gray-600 bg-gray-800/90 px-3 py-2 text-xs font-semibold text-gray-200"
         >
           <i className="fas fa-book-open" />
-          史官起居注
+          日志
         </button>
       </div>
 
-      <div className="flex w-full flex-wrap justify-start gap-x-3 gap-y-2 md:mt-0 md:flex-1 md:justify-center md:space-x-0 xl:w-auto xl:flex-nowrap xl:gap-x-7">
+      <div className="flex w-full flex-wrap justify-start gap-x-2 gap-y-2 md:mt-0 md:flex-1 md:justify-center md:space-x-0 xl:w-auto xl:flex-nowrap xl:gap-x-7">
         {RESOURCE_KEYS.map((key) => (
           <ResourceMeter key={key} type={key} value={gameState.resources[key]} delta={gameState.dailyChanges[key]} />
         ))}

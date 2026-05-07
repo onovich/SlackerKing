@@ -2,14 +2,14 @@ import { getPhaseName } from '../../logic/engine/gameEngine';
 
 function getTip(gameState, currentEvent) {
   if (gameState.phase === 'morning') {
-    return currentEvent?.tag ? `轻触下方政务选项，优先处理“${currentEvent.tag}”。` : '轻触下方政务选项推进一天。';
+    return currentEvent?.tag ? `优先处理“${currentEvent.tag}”` : '处理今日朝务';
   }
 
   if (gameState.phase === 'afternoon') {
-    return `还剩 ${gameState.player.ap} 点行动力，轻触地点巡幸，或直接结束午后。`;
+    return `还剩 ${gameState.player.ap} 点行动力`;
   }
 
-  return '先看完夜报，再进入下一天。';
+  return '看完夜报后进入下一天';
 }
 
 export function MobileActionBar({ gameState, currentEvent, onOpenOverview, onOpenLog, onOpenMenu, onEndAfternoon, onNextDay }) {
@@ -23,32 +23,32 @@ export function MobileActionBar({ gameState, currentEvent, onOpenOverview, onOpe
   return (
     <div className="mobile-dock fixed inset-x-0 bottom-0 z-30 border-t border-gray-700/80 bg-gray-950/95 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-12px_24px_rgba(0,0,0,0.35)] backdrop-blur md:hidden">
       <div className="mx-auto flex max-w-3xl flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-col gap-2">
           <div className="min-w-0">
             <div className="text-[11px] uppercase tracking-[0.28em] text-gray-500">{getPhaseName(gameState.phase)}</div>
             <div className="mt-1 text-sm font-semibold text-gray-100">{getTip(gameState, currentEvent)}</div>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={onOpenOverview}
               className="rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
             >
-              <i className="fas fa-chess-king mr-2" />提要
+              <i className="fas fa-chess-king mr-1" />提要
             </button>
             <button
               type="button"
               onClick={onOpenLog}
               className="rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
             >
-              <i className="fas fa-book-open mr-2" />史官
+              <i className="fas fa-book-open mr-1" />日志
             </button>
             <button
               type="button"
               onClick={onOpenMenu}
               className="rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
             >
-              <i className="fas fa-gear mr-2" />设置
+              <i className="fas fa-gear mr-1" />菜单
             </button>
           </div>
         </div>

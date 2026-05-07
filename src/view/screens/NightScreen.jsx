@@ -128,8 +128,7 @@ export function NightScreen({ summary, dailyChanges, regimeSummary, onNextDay })
       <div className="mb-6 border-b border-gray-700 pb-4 text-center">
         <i className="fas fa-moon mb-4 animate-pulse text-5xl text-blue-400" />
         <h2 className="text-2xl font-bold text-gray-200">暗夜密报</h2>
-        <p className="mt-3 text-sm text-gray-400 xl:hidden">手机端可在底部直接进入下一天，先看完今晚的连锁后果。</p>
-        <p className="mt-3 hidden text-sm text-gray-500 xl:block">桌面端可按 Enter 继续，滚轮浏览整晚的连锁后果。</p>
+        <p className="mt-3 text-sm text-gray-500">先把今晚的后果看完，再决定迎接明天。</p>
       </div>
 
       <div className={`mb-6 rounded-xl border p-4 ${takeaway.panelClass}`}>
@@ -160,7 +159,7 @@ export function NightScreen({ summary, dailyChanges, regimeSummary, onNextDay })
         </div>
       </div>
 
-      <div className="mb-8 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-700 bg-gray-900 p-1 xl:max-h-[48vh]">
+      <div className="mb-8 max-h-[32vh] overflow-y-auto rounded-lg border border-gray-700 bg-gray-900 p-1 sm:max-h-[38vh] xl:max-h-[48vh]">
         <ul className="divide-y divide-gray-800 text-left text-gray-300">
           {summary.map((item) => (
             <li key={item.id} className={`px-4 py-3 ${toneClassMap[item.tone] ?? ''}`}>

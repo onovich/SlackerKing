@@ -14,15 +14,11 @@ function FigureChip({ figure }) {
 
 function OpeningPrelude() {
   return (
-    <div className="mb-6 rounded-xl border border-yellow-800/60 bg-[linear-gradient(135deg,rgba(120,53,15,0.22),rgba(24,24,27,0.88))] p-4 sm:p-5">
+    <div className="mb-5 rounded-xl border border-yellow-800/60 bg-[linear-gradient(135deg,rgba(120,53,15,0.22),rgba(24,24,27,0.88))] p-4 sm:p-5">
       <div className="text-xs uppercase tracking-[0.3em] text-yellow-500">序章</div>
       <div className="mt-2 text-lg font-bold text-yellow-200">你不是被拥上王座的，你是被人从床上拖上来的。</div>
       <p className="mt-3 text-sm leading-6 text-gray-200 sm:text-base">
-        老国王昨夜断了气，宫门还来不及换白幡，文书、债主、将军、宗室和使节就已经堵在殿外。
-        他们看中的不是你这个人，而是你身后的印玺、国库和那点还没散干净的王室威望。
-      </p>
-      <p className="mt-3 text-sm leading-6 text-gray-300 sm:text-base">
-        你心里很清楚，自己既不是什么天降明君，也没打算力挽狂澜。你今天真正的目标只有一个：先别让这个烂摊子在你登基第一天就炸开。
+        老国王昨夜断了气，殿外已经挤满文书、债主、将军和宗室。你今天真正的目标只有一个：别让这个烂摊子在登基第一天就炸开。
       </p>
     </div>
   );
@@ -44,11 +40,7 @@ export function MorningScreen({ day, event, availability, onChoose, locked, cour
           </div>
         </div>
 
-        <div className="mb-4 rounded-lg border border-gray-700/70 bg-gray-900/50 px-4 py-3 text-sm text-gray-300 xl:hidden">
-          轻触下方选项即可处理今日朝务。手机端日志与压力概览在底部工具栏。
-        </div>
-
-        <p className="mb-6 rounded border-l-4 border-gray-600 bg-gray-800/50 p-4 font-serif text-base leading-8 text-gray-300 sm:text-lg xl:mb-0 xl:min-h-[220px] xl:text-[1.15rem] xl:leading-9">
+        <p className="mb-6 rounded border-l-4 border-gray-600 bg-gray-800/50 p-4 font-serif text-base leading-8 text-gray-300 sm:text-lg xl:mb-0 xl:min-h-[180px] xl:text-[1.1rem] xl:leading-8">
           {event.desc}
         </p>
 
@@ -62,16 +54,13 @@ export function MorningScreen({ day, event, availability, onChoose, locked, cour
         ) : null}
 
         <div className="hidden xl:flex xl:flex-wrap xl:gap-3 xl:pt-6">
-          <span className="rounded-full border border-gray-600 bg-gray-800/60 px-3 py-1 text-xs uppercase tracking-[0.25em] text-gray-400">
-            Desktop Ready
-          </span>
           <span className="rounded-full border border-yellow-700/60 bg-yellow-900/20 px-3 py-1 text-xs text-yellow-300">
             数字键 1-{event.choices.length} 可直接选择
           </span>
         </div>
       </div>
 
-      <div className="flex flex-col space-y-3 sm:space-y-4 xl:w-[30rem] xl:justify-center">
+      <div className="flex flex-col space-y-3 sm:space-y-4 xl:w-[29rem] xl:justify-center">
         {event.choices.map((choice) => {
           const isEnabled = !locked && Boolean(availability[choice.id]);
           const [label, detail] = choice.text.split('(');
@@ -81,7 +70,7 @@ export function MorningScreen({ day, event, availability, onChoose, locked, cour
             <button
               key={choice.id}
               type="button"
-              className={`btn-choice flex flex-col justify-between rounded-lg border p-4 text-left xl:min-h-[9.5rem] xl:p-5 ${
+              className={`btn-choice flex flex-col justify-between rounded-lg border p-4 text-left xl:min-h-[8.5rem] xl:p-5 ${
                 isEnabled ? 'border-gray-600 bg-gray-800 text-gray-200 xl:hover:translate-x-2' : 'cursor-not-allowed border-gray-800 bg-gray-900/60 text-gray-500'
               }`}
               disabled={!isEnabled}

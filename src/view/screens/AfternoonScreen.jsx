@@ -12,8 +12,8 @@ export function AfternoonScreen({ ap, onChooseLocation, onEndAfternoon, locked }
           <span className="mx-2 rounded bg-gray-800 px-2 text-xl font-bold text-blue-400">{ap}</span>
           是去体察民情，还是纵情声色？
         </p>
-        <p className="mt-3 rounded-lg border border-gray-700/70 bg-gray-900/50 px-4 py-3 text-sm text-gray-300 xl:hidden">轻触地点巡幸；若想省事，底部可直接结束午后。</p>
-        <p className="mt-3 hidden text-sm text-gray-500 xl:block">桌面端支持数字键 1-7 快速移动，按 Enter 可直接回寝宫安歇。</p>
+        <p className="mt-3 rounded-lg border border-gray-700/70 bg-gray-900/50 px-4 py-3 text-sm text-gray-300 xl:hidden">点地点巡幸，或在底部直接结束午后。</p>
+        <p className="mt-3 hidden text-sm text-gray-500 xl:block">数字键 1-7 可快速巡幸，Enter 可直接回寝宫安歇。</p>
       </div>
 
       <div className={`grid grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3 xl:gap-7 ${locked ? 'pointer-events-none opacity-50' : ''}`}>
@@ -21,7 +21,7 @@ export function AfternoonScreen({ ap, onChooseLocation, onEndAfternoon, locked }
           <button
             key={location.id}
             type="button"
-            className="group relative flex cursor-pointer flex-col items-center rounded-xl border border-gray-700 bg-gray-800/80 p-5 text-center shadow-md transition-all hover:border-gray-500 hover:bg-gray-700 xl:min-h-[15rem] xl:justify-center xl:p-7"
+            className="group relative flex cursor-pointer flex-col items-start rounded-xl border border-gray-700 bg-gray-800/80 p-5 text-left shadow-md transition-all hover:border-gray-500 hover:bg-gray-700 sm:items-center sm:text-center xl:min-h-[15rem] xl:justify-center xl:p-7"
             style={{ animationDelay: `${index * 0.1}s` }}
             disabled={locked || ap <= 0}
             onClick={() => onChooseLocation(location.id)}

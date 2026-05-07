@@ -88,30 +88,32 @@ export default function App() {
   const handleSave = (slotId = selectedSlotId) => {
     if (!slotId) {
       setMenuFeedback('请先选择一个存档槽位。');
-      return;
+      return false;
     }
 
     const nextSavedRun = saveRun(slotId);
     setSelectedSlotId(slotId);
     setMenuFeedback(nextSavedRun ? `已将当前进度写入${getSlotLabel(slotId)}。` : '当前结局无法存档。');
+    return Boolean(nextSavedRun);
   };
 
   const handleLoad = (slotId = selectedSlotId) => {
     if (!slotId) {
       setMenuFeedback('请先选择一个存档槽位。');
-      return;
+      return false;
     }
 
     const nextSavedRun = loadSavedRun(slotId);
     if (!nextSavedRun) {
       setMenuFeedback(`${getSlotLabel(slotId)}暂无可读取的存档。`);
-      return;
+      return false;
     }
 
     setSelectedSlotId(slotId);
     setMenuFeedback(`已读取${getSlotLabel(slotId)}。`);
     setSettingsOpen(false);
     setScreenMode('game');
+    return true;
   };
 
   const handleReturnToTitle = () => {
@@ -196,8 +198,6 @@ export default function App() {
     <div className={`app-shell relative flex h-screen w-screen flex-col selection:bg-yellow-700 selection:text-white ${damageFlash ? 'damage-flash' : ''}`}>
       {screenMode === 'title' ? (
         <TitleScreen
-          gameState={gameState}
-          runRecords={runRecords}
           saveSlots={saveSlots}
           activeSlotId={activeSlotId}
           selectedSlotId={selectedSlotId}
@@ -221,7 +221,7 @@ export default function App() {
               <DesktopCompanion gameState={gameState} currentEvent={currentEvent} visibleRisks={visibleRisks} factionOverview={factionOverview} courtFigures={courtFigures} runRecords={runRecords} />
 
               <div
-                className="relative flex flex-1 items-start justify-center overflow-y-auto p-3 pb-28 sm:p-4 sm:pb-32 md:items-center md:p-8 md:pb-8 xl:rounded-[28px] xl:border xl:border-gray-700/80 xl:bg-[radial-gradient(circle_at_top,_rgba(74,85,104,0.28),_rgba(18,20,26,0.95)_55%)] xl:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+                className="relative flex flex-1 items-start justify-center overflow-y-auto p-3 pb-28 sm:p-4 sm:pb-32 md:items-start md:p-6 md:pb-8 xl:rounded-[28px] xl:border xl:border-gray-700/80 xl:bg-[radial-gradient(circle_at_top,_rgba(74,85,104,0.28),_rgba(18,20,26,0.95)_55%)] xl:shadow-[0_16px_40px_rgba(0,0,0,0.35)] xl:p-8"
                 id="interaction-area"
               >
                 {gameState.isGameOver ? (
