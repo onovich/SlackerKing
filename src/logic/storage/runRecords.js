@@ -222,3 +222,13 @@ export function getArchiveMilestones(records) {
     };
   });
 }
+
+export function getNewlyUnlockedArchiveMilestones(previousRecords, nextRecords) {
+  const previous = new Set(
+    getArchiveMilestones(previousRecords)
+      .filter((entry) => entry.unlocked)
+      .map((entry) => entry.id),
+  );
+
+  return getArchiveMilestones(nextRecords).filter((entry) => entry.unlocked && !previous.has(entry.id));
+}

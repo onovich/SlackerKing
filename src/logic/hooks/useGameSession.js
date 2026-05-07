@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentEvent, initializeGameState, resolveLocationVisit, resolveMorningChoice, startNextDay, transitionState } from '../engine/gameEngine';
 import { clearCurrentRun, loadCurrentRun, saveCurrentRun } from '../storage/currentRun';
-import { loadRunRecords, recordFinishedRun, saveRunRecords } from '../storage/runRecords';
+import { getNewlyUnlockedArchiveMilestones, loadRunRecords, recordFinishedRun, saveRunRecords } from '../storage/runRecords';
 
 function createFloatingText(text, point, color) {
   return {
@@ -22,6 +22,7 @@ export function useGameSession() {
   const [choiceLocked, setChoiceLocked] = useState(false);
   const [locationLocked, setLocationLocked] = useState(false);
   const [resumePrompt, setResumePrompt] = useState(() => initialSavedRun);
+  const [newlyUnlockedMilestones, setNewlyUnlockedMilestones] = useState([]);
   const gameStateRef = useRef(gameState);
   const timeoutsRef = useRef([]);
   const recordedRunKeyRef = useRef(null);
@@ -111,6 +112,7 @@ export function useGameSession() {
         primaryFaction: gameState.gameOver?.regimeSummary?.primaryFaction?.label,
         figures: gameState.gameOver?.regimeSummary?.figures?.map((figure) => figure.name),
       });
+      setNewlyUnlockedMilestones(getNewlyUnlockedArchiveMilestones(current, next));
       saveRunRecords(next);
       return next;
     });
@@ -185,6 +187,7 @@ export function useGameSession() {
     setDamageFlash(false);
     setChoiceLocked(false);
     setLocationLocked(false);
+    setNewlyUnlockedMilestones([]);
     clearCurrentRun();
     setGameState(initializeGameState());
   };
@@ -200,6 +203,7 @@ export function useGameSession() {
     setDamageFlash(false);
     setChoiceLocked(false);
     setLocationLocked(false);
+    setNewlyUnlockedMilestones([]);
     setGameState(initializeGameState());
     setResumePrompt(null);
   };
@@ -207,6 +211,7 @@ export function useGameSession() {
   return {
     gameState,
     runRecords,
+    newlyUnlockedMilestones,
     resumePrompt,
     currentEvent,
     floatingTexts,

@@ -27,6 +27,7 @@ export default function App() {
   const {
     gameState,
     runRecords,
+    newlyUnlockedMilestones,
     resumePrompt,
     currentEvent,
     floatingTexts,
@@ -131,7 +132,7 @@ export default function App() {
             id="interaction-area"
           >
             {gameState.isGameOver ? (
-              <GameOverScreen gameOver={gameState.gameOver} day={gameState.day} runRecords={runRecords} onRestart={restart} />
+              <GameOverScreen gameOver={gameState.gameOver} day={gameState.day} runRecords={runRecords} newlyUnlockedMilestones={newlyUnlockedMilestones} onRestart={restart} />
             ) : null}
 
             {!gameState.isGameOver && gameState.phase === 'morning' ? (

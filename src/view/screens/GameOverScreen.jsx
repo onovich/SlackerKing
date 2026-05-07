@@ -75,7 +75,7 @@ function MilestoneBadge({ entry }) {
   );
 }
 
-export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
+export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilestones, onRestart }) {
   const retryHint = getRetryHint(gameOver?.cause);
   const figureNames = getFigureNames(gameOver?.regimeSummary);
   const deathCauseEntries = getRecordEntries(runRecords?.deathCauses).slice(0, 4);
@@ -107,6 +107,17 @@ export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
         <div className="text-xs uppercase tracking-[0.3em] text-yellow-500">复盘建议</div>
         <p className="mt-3 text-sm leading-6 text-yellow-100/85">{retryHint}</p>
       </div>
+
+      {newlyUnlockedMilestones?.length ? (
+        <div className="mb-8 rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-4 text-left">
+          <div className="text-xs uppercase tracking-[0.3em] text-emerald-400">本局新达成</div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {newlyUnlockedMilestones.map((entry) => (
+              <MilestoneBadge key={entry.id} entry={entry} />
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mb-8 rounded-xl border border-gray-700/80 bg-gray-900/50 p-4 text-left">
         <div className="text-xs uppercase tracking-[0.3em] text-gray-500">统治路线</div>
