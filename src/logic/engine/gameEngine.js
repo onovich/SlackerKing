@@ -1,4 +1,4 @@
-import { CHARACTER_META, FACTION_META, INITIAL_DAILY_CHANGES, INITIAL_FACTION_STANDINGS, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
+import { CHARACTER_META, FACTION_META, INITIAL_DAILY_CHANGES, INITIAL_FACTION_STANDINGS, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent.js';
 import { OUTCOME_RULES } from '../../data/expandedContent.js';
 
 function cloneState(state) {
@@ -328,11 +328,11 @@ const eventConditions = {
   spy_dossier_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'spy_dossier_aftermath')) && !getFlag(state, 'spy_dossier_aftermath_seen') && (state.factions.foreign || 0) >= 1,
   treasury_audit_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'treasury_audit_aftermath')) && !getFlag(state, 'treasury_audit_aftermath_seen') && (state.factions.merchants || 0) >= 1,
   chapel_vigil_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'chapel_vigil_aftermath')) && !getFlag(state, 'chapel_vigil_aftermath_seen') && (state.factions.old_nobles || 0) >= 1,
-  court_cycle_ready: (state) => state.day > 1,
-  treasury_pressure_ready: (state) => state.day > 1 && state.resources.treasury < 70,
-  authority_pressure_ready: (state) => state.day > 1 && state.resources.authority < 70,
-  public_grievance_ready: (state) => state.day > 1 && (state.resources.favor < 75 || state.resources.treasury < 70),
-  regional_audience_ready: (state) => state.day > 1,
+  court_cycle_ready: (state) => state.day >= 1,
+  treasury_pressure_ready: (state) => state.day >= 1 && state.resources.treasury < 70,
+  authority_pressure_ready: (state) => state.day >= 1 && state.resources.authority < 70,
+  public_grievance_ready: (state) => state.day >= 1 && (state.resources.favor < 75 || state.resources.treasury < 70),
+  regional_audience_ready: (state) => state.day >= 1,
   household_cycle_ready: (state) => state.day > 2,
   clergy_cycle_ready: (state) => state.day > 2 && (state.resources.favor < 80 || (state.factions.old_nobles || 0) >= 2),
   intrigue_cycle_ready: (state) => state.day > 3,
@@ -342,21 +342,151 @@ const eventConditions = {
   merchants_route_ready: (state) => state.day > 2 && (state.factions.merchants || 0) >= 2,
   foreign_route_ready: (state) => state.day > 2 && (state.factions.foreign || 0) >= 2,
   magic_beast_ready: (state) => state.day > 5 && !getFlag(state, 'beast_seen'),
-  corrupt_hand_ready: (state) => state.resources.authority < 60 && !getFlag(state, 'hand_warned'),
+  corrupt_hand_ready: (state) => state.day > 2 && state.resources.authority < 55 && !getFlag(state, 'hand_warned'),
 };
 
 function getEventWeight(event, state) {
   const baseWeight = event.weight || 1;
-  if (!event.factionId) {
-    return baseWeight;
+  const factionScore = event.factionId ? (state.factions?.[event.factionId] || 0) : 0;
+  const recentEvents = (state.history ?? [])
+    .map((id) => getEventById(id))
+    .filter((item) => item && item.id !== defaultEvent.id);
+  const sameTagCount = recentEvents.filter((item) => item.tag === event.tag).length;
+  const bucket = getEventBucket(event);
+
+  let weight = baseWeight;
+
+  if (event.factionId && factionScore > 0) {
+    weight *= 1 + factionScore * 0.4;
   }
 
-  const factionScore = state.factions?.[event.factionId] || 0;
-  if (factionScore <= 0) {
-    return baseWeight;
+  weight *= getEventStageMultiplier(bucket, state.day);
+  weight *= getEventUrgencyMultiplier(event, state, factionScore);
+  weight *= getEventCadenceMultiplier(bucket, recentEvents, event.tag, sameTagCount);
+
+  return Math.max(0.2, weight);
+}
+
+function getEventBucket(event) {
+  if (event.tag === '人物后续' || event.tag === '午后后续' || event.tag === '外交后续') {
+    return 'followup';
   }
 
-  return baseWeight + factionScore * 8;
+  if (event.tag === '路线升级') {
+    return 'route';
+  }
+
+  if (event.tag === '派系事件') {
+    return 'faction';
+  }
+
+  if (event.tag === '内政危机' || event.tag === '外交事件' || event.tag === '权力博弈' || event.tag === '宫廷异闻') {
+    return 'crisis';
+  }
+
+  return 'cycle';
+}
+
+function getEventStageMultiplier(bucket, day) {
+  if (day <= 3) {
+    if (bucket === 'crisis') return 1.35;
+    if (bucket === 'faction') return 1.18;
+    if (bucket === 'followup') return 1.05;
+    if (bucket === 'route') return 0.65;
+    return 0.78;
+  }
+
+  if (day <= 7) {
+    if (bucket === 'crisis') return 1.12;
+    if (bucket === 'faction') return 1.15;
+    if (bucket === 'followup') return 1.16;
+    if (bucket === 'route') return 1.05;
+    return 1;
+  }
+
+  if (bucket === 'crisis') return 0.92;
+  if (bucket === 'faction') return 1;
+  if (bucket === 'followup') return 1.12;
+  if (bucket === 'route') return 1.28;
+  return 1.08;
+}
+
+function getMaxProgress(state, keys) {
+  return keys.reduce((max, key) => Math.max(max, getFlag(state, key) || 0), 0);
+}
+
+function getEventUrgencyMultiplier(event, state, factionScore) {
+  if (event.conditionId === 'treasury_pressure_ready') {
+    return state.resources.treasury < 35 ? 1.35 : 1.12;
+  }
+
+  if (event.conditionId === 'authority_pressure_ready') {
+    return state.resources.authority < 35 ? 1.35 : 1.12;
+  }
+
+  if (event.conditionId === 'public_grievance_ready') {
+    return state.resources.favor < 35 ? 1.35 : 1.12;
+  }
+
+  if (event.conditionId === 'border_cycle_ready') {
+    return 0.95 + getMaxProgress(state, ['envoy_active', 'khan_war', 'foreign_infiltration', 'pirate_raids', 'frontier_deserters']) * 0.12;
+  }
+
+  if (event.conditionId === 'clergy_cycle_ready') {
+    return 0.92 + getMaxProgress(state, ['clergy_unrest', 'heretic_fervor', 'funeral_omens']) * 0.15;
+  }
+
+  if (event.conditionId === 'intrigue_cycle_ready') {
+    return 0.92 + getMaxProgress(state, ['hand_power', 'court_scandal', 'blackmail_letters', 'pretender_rumor']) * 0.14;
+  }
+
+  if (event.conditionId === 'household_cycle_ready') {
+    const householdPressure = getMaxProgress(state, ['court_scandal', 'succession_whispers', 'wedding_debt', 'family_vengeance']);
+    return householdPressure > 0 ? 1 + householdPressure * 0.12 : 0.9;
+  }
+
+  if (event.conditionId === 'court_cycle_ready' || event.conditionId === 'regional_audience_ready') {
+    return 0.96;
+  }
+
+  if (event.conditionId.endsWith('_route_ready')) {
+    return 1.05 + factionScore * 0.14;
+  }
+
+  if (event.conditionId.endsWith('_ready') && event.factionId && factionScore > 0) {
+    return 1 + factionScore * 0.08;
+  }
+
+  return 1;
+}
+
+function getEventCadenceMultiplier(bucket, recentEvents, tag, sameTagCount) {
+  const lastEvent = recentEvents.at(-1);
+  const sameBucketCount = recentEvents.filter((item) => getEventBucket(item) === bucket).length;
+
+  if (bucket === 'followup' || bucket === 'crisis') {
+    if (lastEvent?.tag === tag) {
+      return 0.9;
+    }
+
+    return 1;
+  }
+
+  let multiplier = 1;
+
+  if (lastEvent?.tag === tag) {
+    multiplier *= bucket === 'route' ? 0.68 : 0.42;
+  }
+
+  if (sameTagCount > 0) {
+    multiplier *= Math.max(0.35, 1 - sameTagCount * 0.22);
+  }
+
+  if (sameBucketCount > 1) {
+    multiplier *= Math.max(0.55, 1 - (sameBucketCount - 1) * 0.12);
+  }
+
+  return multiplier;
 }
 
 const requirementChecks = {
@@ -1348,7 +1478,7 @@ export function prepareMorning(currentState) {
 
   if (event.id !== defaultEvent.id) {
     state.history.push(event.id);
-    if (state.history.length > 5) {
+    if (state.history.length > 8) {
       state.history.shift();
     }
   }
