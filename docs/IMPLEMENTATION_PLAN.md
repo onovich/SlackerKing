@@ -131,6 +131,7 @@
 
 ## 当前文档索引
 
+- 当前现状总览：docs/CURRENT_STATE.md
 - 本路线图：docs/IMPLEMENTATION_PLAN.md
 - 阶段 1 规格：docs/PHASE_1_READABILITY_SPEC.md
 - 阶段 2 规格：docs/PHASE_2_NUMERIC_SPEC.md

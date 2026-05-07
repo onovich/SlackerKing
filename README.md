@@ -21,6 +21,7 @@ SlackerKing is a Vite + React refactor of the original single-file court surviva
 - The expected Pages URL is `https://onovich.github.io/SlackerKing/`.<br/>**预期的 Pages 地址为 `https://onovich.github.io/SlackerKing/`。**
 
 ## Planning Docs
+- See [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md) for the current project-state and handoff summary.<br/>**当前项目现状与接手摘要见 [docs/CURRENT_STATE.md](docs/CURRENT_STATE.md)。**
 - See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) for the active execution roadmap.<br/>**当前执行路线图见 [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)。**
 - See [docs/PHASE_1_READABILITY_SPEC.md](docs/PHASE_1_READABILITY_SPEC.md) for the current readability and UX baseline spec.<br/>**当前阶段的信息可读性与体验基线规格见 [docs/PHASE_1_READABILITY_SPEC.md](docs/PHASE_1_READABILITY_SPEC.md)。**
 - See [docs/PHASE_2_NUMERIC_SPEC.md](docs/PHASE_2_NUMERIC_SPEC.md) for the numeric responsibility and progression spec.<br/>**当前数值职责与进程曲线规格见 [docs/PHASE_2_NUMERIC_SPEC.md](docs/PHASE_2_NUMERIC_SPEC.md)。**
