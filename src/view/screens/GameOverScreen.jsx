@@ -1,4 +1,30 @@
+function getRetryHint(cause) {
+  if (cause === '中风崩殂') {
+    return '你不是死于大事，而是死于长期失控的压力。下一局把减压当成硬约束，而不是可选项。';
+  }
+
+  if (cause === '破产引发内乱') {
+    return '你给自己留的财政缓冲不够。下一局别把国库当作纯消耗品，至少要撑得住两晚固定开销和一次突发事件。';
+  }
+
+  if (cause === '权臣逼宫') {
+    return '权威崩盘通常不是一夜之间发生的。下一局看到宰相或类似隐患时，要更早用强硬手段止损。';
+  }
+
+  if (cause === '外敌破城') {
+    return '没有军力储备时，外交强硬只会把自己送上断头路。下一局在挑衅外敌前先把军力和国库抬起来。';
+  }
+
+  if (cause === '大革命') {
+    return '民心是最容易被你忽视、却最容易突然清零的资源。下一局别让享乐和怠政连续透支它。';
+  }
+
+  return '回看最后几天的日志，找出最先失控的那一环。下一局先稳住它，再考虑更贪的路线。';
+}
+
 export function GameOverScreen({ gameOver, day, onRestart }) {
+  const retryHint = getRetryHint(gameOver?.cause);
+
   return (
     <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
       <i className="fas fa-skull-crossbones mb-6 text-7xl text-red-600 drop-shadow-lg" />
@@ -15,6 +41,11 @@ export function GameOverScreen({ gameOver, day, onRestart }) {
         <div>
           最终声望: <span className="font-bold text-yellow-400">{gameOver?.title}</span>
         </div>
+      </div>
+
+      <div className="mb-8 rounded-xl border border-yellow-800/60 bg-yellow-900/10 p-4 text-left">
+        <div className="text-xs uppercase tracking-[0.3em] text-yellow-500">复盘建议</div>
+        <p className="mt-3 text-sm leading-6 text-yellow-100/85">{retryHint}</p>
       </div>
 
       <button
