@@ -31,6 +31,11 @@ function RiskRow({ risk }) {
         </span>
       </div>
       <p className="mt-2 text-xs leading-5 text-gray-400">{risk.sourceText}</p>
+      {risk.isSuppressed ? (
+        <p className="mt-2 rounded-lg border border-blue-800/60 bg-blue-900/20 px-2 py-1 text-xs leading-5 text-blue-200">
+          情报暗室已布控：今夜该隐患不会继续恶化。
+        </p>
+      ) : null}
       <p className="mt-2 text-xs leading-5 text-gray-500">应对：{risk.mitigationText}</p>
     </div>
   );

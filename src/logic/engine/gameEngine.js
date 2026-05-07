@@ -236,23 +236,60 @@ const choiceEffects = {
 };
 
 function resolveRumors(state) {
-  let found = false;
+  const targetKey = pickSpyTarget(state);
 
-  if ((getFlag(state, 'hand_power') || 0) > 1) {
-    pushLog(state, '情报总管密报：宰相最近频繁密会城防军将领。');
-    found = true;
-  }
-  if ((getFlag(state, 'southern_mess') || 0) > 0) {
-    pushLog(state, '暗探回报：南方行省正在私下打造兵器。');
-    found = true;
-  }
-  if (getFlag(state, 'envoy_active')) {
-    pushLog(state, '仆人说：北方使者在宴会上画了首都的布防图。');
-    found = true;
-  }
-  if (!found) {
+  if (!targetKey) {
+    deleteFlag(state, 'spy_watch_target');
+    deleteFlag(state, 'spy_watch_cd');
     pushLog(state, '情报总管：今日并无要事，陛下。天下太平（大概）。');
+    return;
   }
+
+  setFlag(state, 'spy_watch_target', targetKey);
+  setFlag(state, 'spy_watch_cd', 1);
+
+  if (targetKey === 'hand_power') {
+    pushLog(state, '情报总管密报：宰相最近频繁密会城防军将领。臣已布线盯梢，今夜他的动作会被暂时压住。');
+    return;
+  }
+
+  if (targetKey === 'southern_mess') {
+    pushLog(state, '暗探回报：南方行省正在私下打造兵器。臣已派人截断信使，今夜局势不会继续恶化。');
+    return;
+  }
+
+  if (targetKey === 'envoy_active' || targetKey === 'khan_war') {
+    pushLog(state, '仆人说：北方使者在宴会上画了首都的布防图。臣已安排假情报误导他们，今夜威胁会被拖住。');
+    return;
+  }
+
+  pushLog(state, '情报总管回报：几道荒唐诏令已被地方官吏层层曲解。臣已暗中截下一批公文，今夜恶果会被延后。');
+}
+
+function getSuppressedRiskKey(state) {
+  if ((getFlag(state, 'spy_watch_cd') || 0) <= 0) {
+    return null;
+  }
+
+  return getFlag(state, 'spy_watch_target') || null;
+}
+
+function pickSpyTarget(state) {
+  const candidates = [];
+
+  if ((getFlag(state, 'khan_war') || 0) > 0) {
+    candidates.push({ key: 'khan_war', progress: getFlag(state, 'khan_war') || 0 });
+  } else if ((getFlag(state, 'envoy_active') || 0) > 0) {
+    candidates.push({ key: 'envoy_active', progress: getFlag(state, 'envoy_active') || 0 });
+  }
+
+  candidates.push({ key: 'hand_power', progress: getFlag(state, 'hand_power') || 0 });
+  candidates.push({ key: 'southern_mess', progress: getFlag(state, 'southern_mess') || 0 });
+  candidates.push({ key: 'messy_admin', progress: getFlag(state, 'messy_admin') || 0 });
+
+  return candidates
+    .filter((item) => item.progress > 0)
+    .sort((left, right) => right.progress - left.progress)[0]?.key ?? null;
 }
 
 const locationActions = {
@@ -396,6 +433,7 @@ function getRiskLevel(progress, levels) {
 
 export function getVisibleRisks(state) {
   const risks = [];
+  const suppressedRiskKey = getSuppressedRiskKey(state);
 
   const pushRisk = (id, progress) => {
     const meta = RISK_META[id];
@@ -412,6 +450,7 @@ export function getVisibleRisks(state) {
       level,
       sourceText: meta.sourceText,
       mitigationText: meta.mitigationText,
+      isSuppressed: suppressedRiskKey === id,
     });
   };
 
@@ -530,6 +569,7 @@ export function enterNight(currentState) {
 
   state.phase = 'night';
   state.nightSummary = [];
+  const suppressedRiskKey = getSuppressedRiskKey(state);
 
   Object.keys(state.flags).forEach((key) => {
     if (typeof state.flags[key] !== 'number') {
@@ -544,8 +584,20 @@ export function enterNight(currentState) {
       return;
     }
 
+    if (suppressedRiskKey && key === suppressedRiskKey) {
+      return;
+    }
+
     state.flags[key] += 1;
   });
+
+  if (suppressedRiskKey) {
+    const riskMeta = RISK_META[suppressedRiskKey];
+    if (riskMeta) {
+      pushNightSummary(state, 'info', `【情报布控】你提前盯住了“${riskMeta.label}”，这一隐患今夜没有继续恶化。`);
+    }
+    deleteFlag(state, 'spy_watch_target');
+  }
 
   let eventsOccurred = 0;
   for (const event of nightEvents) {
