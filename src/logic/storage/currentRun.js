@@ -1,4 +1,11 @@
-const STORAGE_KEY = 'slackerking-current-run-v1';
+const STORAGE_KEY = 'slackerking-save-slots-v2';
+const LEGACY_STORAGE_KEY = 'slackerking-current-run-v1';
+
+export const SAVE_SLOT_DEFINITIONS = [
+  { id: 'slot-1', label: '御案一' },
+  { id: 'slot-2', label: '御案二' },
+  { id: 'slot-3', label: '御案三' },
+];
 
 const VALID_PHASES = new Set(['morning', 'afternoon', 'night']);
 const RESOURCE_KEYS = ['treasury', 'authority', 'military', 'favor'];
@@ -43,46 +50,145 @@ function isValidGameState(state) {
   return typeof state.isGameOver === 'boolean';
 }
 
-export function loadCurrentRun() {
-  if (typeof window === 'undefined') {
+function isValidSlotId(slotId) {
+  return SAVE_SLOT_DEFINITIONS.some((slot) => slot.id === slotId);
+}
+
+function normalizeSavedRun(savedRun) {
+  if (!isValidGameState(savedRun?.gameState) || savedRun.gameState.isGameOver) {
     return null;
   }
 
+  return {
+    gameState: savedRun.gameState,
+    savedAt: typeof savedRun.savedAt === 'number' ? savedRun.savedAt : Date.now(),
+  };
+}
+
+function createEmptySaveData() {
+  return {
+    activeSlotId: null,
+    slots: Object.fromEntries(SAVE_SLOT_DEFINITIONS.map((slot) => [slot.id, null])),
+  };
+}
+
+function writeSaveData(saveData) {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+}
+
+function readLegacySaveData() {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) {
       return null;
     }
 
     const parsed = JSON.parse(raw);
-    if (!isValidGameState(parsed?.gameState) || parsed.gameState.isGameOver) {
+    const savedRun = normalizeSavedRun(parsed);
+    if (!savedRun) {
+      window.localStorage.removeItem(LEGACY_STORAGE_KEY);
       return null;
     }
 
-    return {
-      gameState: parsed.gameState,
-      savedAt: typeof parsed.savedAt === 'number' ? parsed.savedAt : Date.now(),
-    };
+    const migrated = createEmptySaveData();
+    migrated.activeSlotId = SAVE_SLOT_DEFINITIONS[0].id;
+    migrated.slots[migrated.activeSlotId] = savedRun;
+    writeSaveData(migrated);
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    return migrated;
   } catch {
     return null;
   }
 }
 
-export function saveCurrentRun(gameState) {
-  if (typeof window === 'undefined' || !isValidGameState(gameState) || gameState.isGameOver) {
-    return;
+function readSaveData() {
+  if (typeof window === 'undefined') {
+    return createEmptySaveData();
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    gameState,
-    savedAt: Date.now(),
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return readLegacySaveData() ?? createEmptySaveData();
+    }
+
+    const parsed = JSON.parse(raw);
+    const slots = Object.fromEntries(
+      SAVE_SLOT_DEFINITIONS.map((slot) => [slot.id, normalizeSavedRun(parsed?.slots?.[slot.id])]),
+    );
+    const activeSlotId = isValidSlotId(parsed?.activeSlotId) ? parsed.activeSlotId : null;
+
+    return {
+      activeSlotId: slots[activeSlotId] ? activeSlotId : null,
+      slots,
+    };
+  } catch {
+    return createEmptySaveData();
+  }
+}
+
+export function loadSaveSlots() {
+  const saveData = readSaveData();
+  return SAVE_SLOT_DEFINITIONS.map((slot) => ({
+    ...slot,
+    savedRun: saveData.slots[slot.id],
+    isActive: saveData.activeSlotId === slot.id,
   }));
 }
 
-export function clearCurrentRun() {
-  if (typeof window === 'undefined') {
-    return;
+export function getActiveSaveSlotId() {
+  return readSaveData().activeSlotId;
+}
+
+export function loadCurrentRun(slotId) {
+  const saveData = readSaveData();
+  const resolvedSlotId = isValidSlotId(slotId) ? slotId : saveData.activeSlotId;
+  if (!resolvedSlotId || !saveData.slots[resolvedSlotId]) {
+    return null;
   }
 
-  window.localStorage.removeItem(STORAGE_KEY);
+  return {
+    slotId: resolvedSlotId,
+    ...saveData.slots[resolvedSlotId],
+  };
+}
+
+export function saveCurrentRun(slotId, gameState) {
+  if (typeof window === 'undefined' || !isValidSlotId(slotId) || !isValidGameState(gameState) || gameState.isGameOver) {
+    return null;
+  }
+
+  const saveData = readSaveData();
+  const savedRun = {
+    gameState,
+    savedAt: Date.now(),
+  };
+
+  const nextSaveData = {
+    activeSlotId: slotId,
+    slots: {
+      ...saveData.slots,
+      [slotId]: savedRun,
+    },
+  };
+
+  writeSaveData(nextSaveData);
+  return {
+    slotId,
+    ...savedRun,
+  };
+}
+
+export function setActiveSaveSlotId(slotId) {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const saveData = readSaveData();
+  const nextActiveSlotId = isValidSlotId(slotId) && saveData.slots[slotId] ? slotId : null;
+  writeSaveData({
+    activeSlotId: nextActiveSlotId,
+    slots: saveData.slots,
+  });
+  return nextActiveSlotId;
 }

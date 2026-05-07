@@ -12,7 +12,7 @@ function getTip(gameState, currentEvent) {
   return '先看完夜报，再进入下一天。';
 }
 
-export function MobileActionBar({ gameState, currentEvent, onOpenOverview, onOpenLog, onEndAfternoon, onNextDay }) {
+export function MobileActionBar({ gameState, currentEvent, onOpenOverview, onOpenLog, onOpenMenu, onEndAfternoon, onNextDay }) {
   if (gameState.isGameOver) {
     return null;
   }
@@ -42,6 +42,13 @@ export function MobileActionBar({ gameState, currentEvent, onOpenOverview, onOpe
               className="rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
             >
               <i className="fas fa-book-open mr-2" />史官
+            </button>
+            <button
+              type="button"
+              onClick={onOpenMenu}
+              className="rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
+            >
+              <i className="fas fa-gear mr-2" />设置
             </button>
           </div>
         </div>

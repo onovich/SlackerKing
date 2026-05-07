@@ -81,7 +81,7 @@ function RiskBadge({ visibleRisks }) {
   );
 }
 
-export function TopBar({ gameState, visibleRisks, onOpenLog }) {
+export function TopBar({ gameState, visibleRisks, onOpenLog, onOpenMenu }) {
   const stressAlert = gameState.player.stress > 80;
 
   return (
@@ -96,14 +96,24 @@ export function TopBar({ gameState, visibleRisks, onOpenLog }) {
         <RiskBadge visibleRisks={visibleRisks} />
       </div>
 
-      <button
-        type="button"
-        onClick={onOpenLog}
-        className="inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-600 bg-gray-800/90 px-3 py-2 text-xs font-semibold text-gray-200 md:hidden"
-      >
-        <i className="fas fa-book-open" />
-        史官起居注
-      </button>
+      <div className="flex shrink-0 items-center gap-2 md:hidden">
+        <button
+          type="button"
+          onClick={onOpenMenu}
+          className="inline-flex items-center gap-2 rounded-full border border-gray-600 bg-gray-800/90 px-3 py-2 text-xs font-semibold text-gray-200"
+        >
+          <i className="fas fa-gear" />
+          设置
+        </button>
+        <button
+          type="button"
+          onClick={onOpenLog}
+          className="inline-flex items-center gap-2 rounded-full border border-gray-600 bg-gray-800/90 px-3 py-2 text-xs font-semibold text-gray-200"
+        >
+          <i className="fas fa-book-open" />
+          史官起居注
+        </button>
+      </div>
 
       <div className="flex w-full flex-wrap justify-start gap-x-3 gap-y-2 md:mt-0 md:flex-1 md:justify-center md:space-x-0 xl:w-auto xl:flex-nowrap xl:gap-x-7">
         {RESOURCE_KEYS.map((key) => (
@@ -133,6 +143,14 @@ export function TopBar({ gameState, visibleRisks, onOpenLog }) {
       </div>
 
       <div className="hidden min-w-[200px] justify-end space-x-6 border-l border-gray-700 pl-4 md:flex xl:min-w-[240px]">
+        <button
+          type="button"
+          onClick={onOpenMenu}
+          className="inline-flex h-fit items-center gap-2 self-center rounded-full border border-gray-600 bg-gray-800/90 px-3 py-2 text-xs font-semibold text-gray-200 transition hover:border-yellow-600 hover:text-yellow-100"
+        >
+          <i className="fas fa-gear" />
+          设置
+        </button>
         <StatusMeter
           label="压力"
           icon="fa-brain"

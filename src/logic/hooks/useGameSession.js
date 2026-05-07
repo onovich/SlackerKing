@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentEvent, initializeGameState, resolveLocationVisit, resolveMorningChoice, startNextDay, transitionState } from '../engine/gameEngine';
-import { clearCurrentRun, loadCurrentRun, saveCurrentRun } from '../storage/currentRun';
+import { getActiveSaveSlotId, loadCurrentRun, loadSaveSlots, saveCurrentRun, setActiveSaveSlotId } from '../storage/currentRun';
 import { getNewlyUnlockedArchiveMilestones, loadRunRecords, recordFinishedRun, saveRunRecords } from '../storage/runRecords';
 
 function createFloatingText(text, point, color) {
@@ -17,15 +17,42 @@ export function useGameSession() {
   const initialSavedRun = loadCurrentRun();
   const [gameState, setGameState] = useState(() => initialSavedRun?.gameState ?? initializeGameState());
   const [runRecords, setRunRecords] = useState(() => loadRunRecords());
+  const [saveSlots, setSaveSlots] = useState(() => loadSaveSlots());
+  const [activeSlotId, setActiveSlotIdState] = useState(() => initialSavedRun?.slotId ?? getActiveSaveSlotId());
   const [floatingTexts, setFloatingTexts] = useState([]);
   const [damageFlash, setDamageFlash] = useState(false);
   const [choiceLocked, setChoiceLocked] = useState(false);
   const [locationLocked, setLocationLocked] = useState(false);
-  const [resumePrompt, setResumePrompt] = useState(() => initialSavedRun);
   const [newlyUnlockedMilestones, setNewlyUnlockedMilestones] = useState([]);
   const gameStateRef = useRef(gameState);
   const timeoutsRef = useRef([]);
   const recordedRunKeyRef = useRef(null);
+
+  const resetTransientState = () => {
+    timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
+    timeoutsRef.current = [];
+    recordedRunKeyRef.current = null;
+    setFloatingTexts([]);
+    setDamageFlash(false);
+    setChoiceLocked(false);
+    setLocationLocked(false);
+    setNewlyUnlockedMilestones([]);
+  };
+
+  const syncSaveSlots = () => {
+    setSaveSlots(loadSaveSlots());
+  };
+
+  const persistRun = (slotId, state) => {
+    if (!slotId || state.isGameOver) {
+      return null;
+    }
+
+    const nextSavedRun = saveCurrentRun(slotId, state);
+    setActiveSlotIdState(nextSavedRun?.slotId ?? null);
+    syncSaveSlots();
+    return nextSavedRun;
+  };
 
   const queueTimeout = (callback, delay) => {
     const timeoutId = window.setTimeout(callback, delay);
@@ -73,17 +100,12 @@ export function useGameSession() {
   }, []);
 
   useEffect(() => {
-    if (resumePrompt) {
+    if (!activeSlotId || gameState.isGameOver) {
       return;
     }
 
-    if (gameState.isGameOver) {
-      clearCurrentRun();
-      return;
-    }
-
-    saveCurrentRun(gameState);
-  }, [gameState, resumePrompt]);
+    persistRun(activeSlotId, gameState);
+  }, [activeSlotId, gameState]);
 
   useEffect(() => {
     if (!gameState.isGameOver || !gameState.gameOver) {
@@ -181,39 +203,51 @@ export function useGameSession() {
   };
 
   const restart = () => {
-    timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
-    timeoutsRef.current = [];
-    recordedRunKeyRef.current = null;
-    setFloatingTexts([]);
-    setDamageFlash(false);
-    setChoiceLocked(false);
-    setLocationLocked(false);
-    setNewlyUnlockedMilestones([]);
-    clearCurrentRun();
+    resetTransientState();
+    setActiveSaveSlotId(null);
+    setActiveSlotIdState(null);
+    syncSaveSlots();
     setGameState(initializeGameState());
   };
 
-  const continueSavedRun = () => {
-    setResumePrompt(null);
+  const startNewGame = () => {
+    restart();
   };
 
-  const discardSavedRun = () => {
-    clearCurrentRun();
-    recordedRunKeyRef.current = null;
-    setFloatingTexts([]);
-    setDamageFlash(false);
-    setChoiceLocked(false);
-    setLocationLocked(false);
-    setNewlyUnlockedMilestones([]);
-    setGameState(initializeGameState());
-    setResumePrompt(null);
+  const saveRun = (slotId) => {
+    const currentState = gameStateRef.current;
+    if (currentState.isGameOver) {
+      return null;
+    }
+
+    const resolvedSlotId = slotId ?? activeSlotId;
+    if (!resolvedSlotId) {
+      return null;
+    }
+
+    return persistRun(resolvedSlotId, currentState);
+  };
+
+  const loadSavedRun = (slotId) => {
+    const nextSavedRun = loadCurrentRun(slotId);
+    if (!nextSavedRun) {
+      return null;
+    }
+
+    resetTransientState();
+    setActiveSaveSlotId(nextSavedRun.slotId);
+    setActiveSlotIdState(nextSavedRun.slotId);
+    syncSaveSlots();
+    setGameState(nextSavedRun.gameState);
+    return nextSavedRun;
   };
 
   return {
     gameState,
     runRecords,
     newlyUnlockedMilestones,
-    resumePrompt,
+    saveSlots,
+    activeSlotId,
     currentEvent,
     floatingTexts,
     damageFlash,
@@ -224,7 +258,8 @@ export function useGameSession() {
     endAfternoon,
     nextDay,
     restart,
-    continueSavedRun,
-    discardSavedRun,
+    startNewGame,
+    saveRun,
+    loadSavedRun,
   };
 }
