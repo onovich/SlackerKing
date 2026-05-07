@@ -7,6 +7,59 @@ export const RESOURCE_META = {
   favor: { label: '民心', icon: 'fa-users', textColor: 'text-green-400', barColor: 'bg-green-500' },
 };
 
+export const RISK_META = {
+  hand_power: {
+    label: '宰相权势扩张',
+    icon: 'fa-landmark',
+    levels: {
+      caution: 1,
+      danger: 3,
+    },
+    sourceText: '你对宰相的放任正在侵蚀王权。',
+    mitigationText: '优先通过晨间强硬处置或后续权威修复来压制。',
+  },
+  southern_mess: {
+    label: '南方行省失控',
+    icon: 'fa-fire',
+    levels: {
+      caution: 1,
+      danger: 2,
+    },
+    sourceText: '南方总督正在脱离控制，地方叛乱风险上升。',
+    mitigationText: '尽快补足民心，并避免继续用拖字诀处理地方问题。',
+  },
+  envoy_active: {
+    label: '北方汗国威胁',
+    icon: 'fa-horse-head',
+    levels: {
+      caution: 1,
+      danger: 3,
+    },
+    sourceText: '北方使者滞留宫中，外交危机正在持续发酵。',
+    mitigationText: '尽快解决使者问题，并为可能的战争预留军力与国库。',
+  },
+  khan_war: {
+    label: '北方汗国威胁',
+    icon: 'fa-horse-head',
+    levels: {
+      caution: 1,
+      danger: 1,
+    },
+    sourceText: '大汗已经被激怒，战争进入倒计时。',
+    mitigationText: '立即补充军力，并准备承担国库与民心代价。',
+  },
+  messy_admin: {
+    label: '行政混乱积累',
+    icon: 'fa-file-circle-exclamation',
+    levels: {
+      caution: 2,
+      danger: 4,
+    },
+    sourceText: '草率批文的后遗症正在全国蔓延。',
+    mitigationText: '减少继续乱批的频率，并为夜间恶果预留缓冲资源。',
+  },
+};
+
 export const INITIAL_STATE = {
   day: 1,
   phase: 'morning',

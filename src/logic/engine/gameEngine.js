@@ -1,4 +1,4 @@
-import { INITIAL_STATE, RESOURCE_KEYS, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
+import { INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
 
 function cloneState(state) {
   return {
@@ -365,6 +365,68 @@ export function getPhaseName(phase) {
 
 export function getCurrentEvent(state) {
   return getEventById(state.currentEventId);
+}
+
+function getRiskLevel(progress, levels) {
+  if (progress >= levels.danger) {
+    return {
+      key: 'danger',
+      label: '危急',
+      accentClass: 'text-red-300',
+      badgeClass: 'border-red-700/70 bg-red-900/30 text-red-200',
+    };
+  }
+
+  if (progress >= levels.caution) {
+    return {
+      key: 'caution',
+      label: '警戒',
+      accentClass: 'text-yellow-300',
+      badgeClass: 'border-yellow-700/70 bg-yellow-900/30 text-yellow-200',
+    };
+  }
+
+  return {
+    key: 'stable',
+    label: '平稳',
+    accentClass: 'text-emerald-300',
+    badgeClass: 'border-emerald-700/70 bg-emerald-900/30 text-emerald-200',
+  };
+}
+
+export function getVisibleRisks(state) {
+  const risks = [];
+
+  const pushRisk = (id, progress) => {
+    const meta = RISK_META[id];
+    if (!meta || progress <= 0) {
+      return;
+    }
+
+    const level = getRiskLevel(progress, meta.levels);
+    risks.push({
+      id,
+      label: meta.label,
+      icon: meta.icon,
+      progress,
+      level,
+      sourceText: meta.sourceText,
+      mitigationText: meta.mitigationText,
+    });
+  };
+
+  pushRisk('hand_power', getFlag(state, 'hand_power') || 0);
+  pushRisk('southern_mess', getFlag(state, 'southern_mess') || 0);
+  pushRisk('messy_admin', getFlag(state, 'messy_admin') || 0);
+
+  const envoyProgress = Math.max(getFlag(state, 'envoy_active') || 0, getFlag(state, 'khan_war') || 0);
+  if ((getFlag(state, 'khan_war') || 0) > 0) {
+    pushRisk('khan_war', getFlag(state, 'khan_war') || 0);
+  } else {
+    pushRisk('envoy_active', envoyProgress);
+  }
+
+  return risks.sort((left, right) => right.progress - left.progress);
 }
 
 export function initializeGameState() {
