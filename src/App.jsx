@@ -141,7 +141,7 @@ export default function App() {
             ) : null}
 
             {!gameState.isGameOver && gameState.phase === 'night' ? (
-              <NightScreen summary={gameState.nightSummary} onNextDay={nextDay} />
+              <NightScreen summary={gameState.nightSummary} dailyChanges={gameState.dailyChanges} onNextDay={nextDay} />
             ) : null}
 
             <FloatingTexts items={floatingTexts} />

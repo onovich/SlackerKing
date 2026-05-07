@@ -60,6 +60,15 @@ export const RISK_META = {
   },
 };
 
+export const INITIAL_DAILY_CHANGES = {
+  treasury: 0,
+  authority: 0,
+  military: 0,
+  favor: 0,
+  stress: 0,
+  energy: 0,
+};
+
 export const INITIAL_STATE = {
   day: 1,
   phase: 'morning',
@@ -72,6 +81,7 @@ export const INITIAL_STATE = {
   traits: { isSlippery: true },
   logs: [],
   nightSummary: [],
+  dailyChanges: { ...INITIAL_DAILY_CHANGES },
   gameOver: null,
 };
 

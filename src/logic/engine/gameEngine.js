@@ -1,4 +1,4 @@
-import { INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
+import { INITIAL_DAILY_CHANGES, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
 
 function cloneState(state) {
   return {
@@ -9,6 +9,7 @@ function cloneState(state) {
     history: [...state.history],
     logs: [...state.logs],
     nightSummary: [...state.nightSummary],
+    dailyChanges: { ...state.dailyChanges },
     gameOver: state.gameOver ? { ...state.gameOver } : null,
   };
 }
@@ -56,6 +57,14 @@ function clampState(state) {
 
 function applyStatChanges(state, changes) {
   let damage = false;
+  const previous = {
+    treasury: state.resources.treasury,
+    authority: state.resources.authority,
+    military: state.resources.military,
+    favor: state.resources.favor,
+    stress: state.player.stress,
+    energy: state.player.energy,
+  };
 
   if (typeof changes.treasury === 'number') {
     state.resources.treasury += changes.treasury;
@@ -82,6 +91,14 @@ function applyStatChanges(state, changes) {
   }
 
   clampState(state);
+
+  state.dailyChanges.treasury += state.resources.treasury - previous.treasury;
+  state.dailyChanges.authority += state.resources.authority - previous.authority;
+  state.dailyChanges.military += state.resources.military - previous.military;
+  state.dailyChanges.favor += state.resources.favor - previous.favor;
+  state.dailyChanges.stress += state.player.stress - previous.stress;
+  state.dailyChanges.energy += state.player.energy - previous.energy;
+
   return damage;
 }
 
@@ -481,6 +498,7 @@ export function prepareMorning(currentState) {
   state.phase = 'morning';
   state.player.energy = 100;
   state.nightSummary = [];
+  state.dailyChanges = { ...INITIAL_DAILY_CHANGES };
 
   const event = pickMorningEvent(state);
   state.currentEventId = event.id;

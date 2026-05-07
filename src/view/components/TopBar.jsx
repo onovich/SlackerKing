@@ -1,10 +1,23 @@
 import { RESOURCE_KEYS, RESOURCE_META } from '../../data/gameContent';
 import { getPhaseName } from '../../logic/engine/gameEngine';
 
-function ResourceMeter({ type, value }) {
+function formatDelta(delta) {
+  if (delta > 0) {
+    return { label: `+${delta}`, className: 'text-emerald-300', icon: 'fa-arrow-trend-up' };
+  }
+
+  if (delta < 0) {
+    return { label: `${delta}`, className: 'text-red-300', icon: 'fa-arrow-trend-down' };
+  }
+
+  return { label: '0', className: 'text-gray-500', icon: 'fa-minus' };
+}
+
+function ResourceMeter({ type, value, delta }) {
   const meta = RESOURCE_META[type];
   const safeValue = Math.max(0, Math.min(100, value));
   const isLow = safeValue <= 20;
+  const deltaMeta = formatDelta(delta);
 
   return (
     <div className="resource-group" data-type={type}>
@@ -12,6 +25,10 @@ function ResourceMeter({ type, value }) {
         <span className={meta.textColor}>
           <i className={`fas ${meta.icon} mr-1`} />
           {meta.label}
+        </span>
+        <span className={`font-mono ${deltaMeta.className}`}>
+          <i className={`fas ${deltaMeta.icon} mr-1 text-[10px]`} />
+          {deltaMeta.label}
         </span>
       </div>
       <div className="relative h-2 w-20 rounded-full border border-gray-700 bg-gray-800 md:w-24">
@@ -81,7 +98,7 @@ export function TopBar({ gameState, visibleRisks }) {
 
       <div className="mt-3 flex w-full flex-wrap justify-start gap-x-4 gap-y-2 md:mt-0 md:flex-1 md:justify-center md:space-x-0 xl:w-auto xl:flex-nowrap xl:gap-x-7">
         {RESOURCE_KEYS.map((key) => (
-          <ResourceMeter key={key} type={key} value={gameState.resources[key]} />
+          <ResourceMeter key={key} type={key} value={gameState.resources[key]} delta={gameState.dailyChanges[key]} />
         ))}
       </div>
 

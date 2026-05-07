@@ -10,6 +10,28 @@ const iconClassMap = {
   calm: 'fas fa-star text-yellow-600',
 };
 
+const dailyDeltaMeta = {
+  treasury: { label: '国库', positiveClass: 'text-yellow-300', negativeClass: 'text-yellow-500' },
+  authority: { label: '权威', positiveClass: 'text-purple-300', negativeClass: 'text-purple-500' },
+  military: { label: '军力', positiveClass: 'text-red-300', negativeClass: 'text-red-500' },
+  favor: { label: '民心', positiveClass: 'text-green-300', negativeClass: 'text-green-500' },
+  stress: { label: '压力', positiveClass: 'text-emerald-300', negativeClass: 'text-red-300' },
+};
+
+function DailyDeltaRow({ label, delta, positiveClass, negativeClass, inverse = false }) {
+  const isPositive = inverse ? delta < 0 : delta > 0;
+  const isNegative = inverse ? delta > 0 : delta < 0;
+  const toneClass = isPositive ? positiveClass : isNegative ? negativeClass : 'text-gray-400';
+  const prefix = delta > 0 ? '+' : '';
+
+  return (
+    <div className="flex items-center justify-between rounded-lg bg-gray-900/60 px-3 py-2 text-sm">
+      <span className="text-gray-300">{label}</span>
+      <span className={`font-mono font-bold ${toneClass}`}>{prefix}{delta}</span>
+    </div>
+  );
+}
+
 function getNightTakeaway(summary) {
   const firstAlert = summary.find((item) => item.tone === 'alert');
   const firstInfo = summary.find((item) => item.tone === 'info');
@@ -61,7 +83,7 @@ function getNightTakeaway(summary) {
   };
 }
 
-export function NightScreen({ summary, onNextDay }) {
+export function NightScreen({ summary, dailyChanges, onNextDay }) {
   const takeaway = getNightTakeaway(summary);
 
   return (
@@ -76,6 +98,19 @@ export function NightScreen({ summary, onNextDay }) {
         <div className="text-xs uppercase tracking-[0.3em] text-gray-400">Tonight's Takeaway</div>
         <div className="mt-2 text-lg font-bold">{takeaway.title}</div>
         <p className="mt-2 text-sm leading-6 opacity-90">{takeaway.body}</p>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-gray-700 bg-gray-900/60 p-4">
+        <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Today's Ledger</div>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <DailyDeltaRow label={dailyDeltaMeta.treasury.label} delta={dailyChanges.treasury} positiveClass={dailyDeltaMeta.treasury.positiveClass} negativeClass={dailyDeltaMeta.treasury.negativeClass} />
+          <DailyDeltaRow label={dailyDeltaMeta.authority.label} delta={dailyChanges.authority} positiveClass={dailyDeltaMeta.authority.positiveClass} negativeClass={dailyDeltaMeta.authority.negativeClass} />
+          <DailyDeltaRow label={dailyDeltaMeta.military.label} delta={dailyChanges.military} positiveClass={dailyDeltaMeta.military.positiveClass} negativeClass={dailyDeltaMeta.military.negativeClass} />
+          <DailyDeltaRow label={dailyDeltaMeta.favor.label} delta={dailyChanges.favor} positiveClass={dailyDeltaMeta.favor.positiveClass} negativeClass={dailyDeltaMeta.favor.negativeClass} />
+          <div className="col-span-2">
+            <DailyDeltaRow label={dailyDeltaMeta.stress.label} delta={dailyChanges.stress} positiveClass={dailyDeltaMeta.stress.positiveClass} negativeClass={dailyDeltaMeta.stress.negativeClass} inverse />
+          </div>
+        </div>
       </div>
 
       <div className="mb-8 max-h-[40vh] overflow-y-auto rounded-lg border border-gray-700 bg-gray-900 p-1 xl:max-h-[48vh]">
