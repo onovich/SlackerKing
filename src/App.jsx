@@ -6,6 +6,7 @@ import { TopBar } from './view/components/TopBar';
 import { DesktopCompanion } from './view/components/DesktopCompanion';
 import { LogPanel } from './view/components/LogPanel';
 import { MobileActionBar } from './view/components/MobileActionBar';
+import { MobileOverviewSheet } from './view/components/MobileOverviewSheet';
 import { ResumePrompt } from './view/components/ResumePrompt';
 import { MorningScreen } from './view/screens/MorningScreen';
 import { AfternoonScreen } from './view/screens/AfternoonScreen';
@@ -26,6 +27,7 @@ function FloatingTexts({ items }) {
 
 export default function App() {
   const [mobileLogOpen, setMobileLogOpen] = useState(false);
+  const [mobileOverviewOpen, setMobileOverviewOpen] = useState(false);
   const {
     gameState,
     runRecords,
@@ -51,6 +53,7 @@ export default function App() {
 
   useEffect(() => {
     setMobileLogOpen(false);
+    setMobileOverviewOpen(false);
   }, [gameState.phase, gameState.isGameOver]);
 
   const choiceAvailability = useMemo(
@@ -144,6 +147,7 @@ export default function App() {
             {!gameState.isGameOver && gameState.phase === 'morning' ? (
               <MorningScreen
                 event={currentEvent}
+                day={gameState.day}
                 availability={choiceAvailability}
                 onChoose={chooseMorningOption}
                 locked={choiceLocked}
@@ -172,10 +176,21 @@ export default function App() {
       </div>
 
       {mobileLogOpen ? <LogPanel logs={gameState.logs} variant="mobile" onClose={() => setMobileLogOpen(false)} /> : null}
+      {mobileOverviewOpen ? (
+        <MobileOverviewSheet
+          gameState={gameState}
+          currentEvent={currentEvent}
+          visibleRisks={visibleRisks}
+          factionOverview={factionOverview}
+          courtFigures={courtFigures}
+          onClose={() => setMobileOverviewOpen(false)}
+        />
+      ) : null}
       {!resumePrompt ? (
         <MobileActionBar
           gameState={gameState}
           currentEvent={currentEvent}
+          onOpenOverview={() => setMobileOverviewOpen(true)}
           onOpenLog={() => setMobileLogOpen(true)}
           onEndAfternoon={endAfternoon}
           onNextDay={nextDay}

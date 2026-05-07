@@ -12,10 +12,28 @@ function FigureChip({ figure }) {
   );
 }
 
-export function MorningScreen({ event, availability, onChoose, locked, courtFigures = [] }) {
+function OpeningPrelude() {
+  return (
+    <div className="mb-6 rounded-xl border border-yellow-800/60 bg-[linear-gradient(135deg,rgba(120,53,15,0.22),rgba(24,24,27,0.88))] p-4 sm:p-5">
+      <div className="text-xs uppercase tracking-[0.3em] text-yellow-500">序章</div>
+      <div className="mt-2 text-lg font-bold text-yellow-200">你不是被拥上王座的，你是被人从床上拖上来的。</div>
+      <p className="mt-3 text-sm leading-6 text-gray-200 sm:text-base">
+        老国王昨夜断了气，宫门还来不及换白幡，文书、债主、将军、宗室和使节就已经堵在殿外。
+        他们看中的不是你这个人，而是你身后的印玺、国库和那点还没散干净的王室威望。
+      </p>
+      <p className="mt-3 text-sm leading-6 text-gray-300 sm:text-base">
+        你心里很清楚，自己既不是什么天降明君，也没打算力挽狂澜。你今天真正的目标只有一个：先别让这个烂摊子在你登基第一天就炸开。
+      </p>
+    </div>
+  );
+}
+
+export function MorningScreen({ day, event, availability, onChoose, locked, courtFigures = [] }) {
   return (
     <section className="parchment flex w-full max-w-3xl flex-col rounded-xl p-4 sm:p-6 md:p-10 xl:max-w-6xl xl:flex-row xl:gap-8 xl:p-8">
       <div className="xl:flex xl:min-h-full xl:flex-1 xl:flex-col xl:justify-between">
+        {day === 1 ? <OpeningPrelude /> : null}
+
         <div className="mb-5 flex items-center border-b border-gray-700 pb-4 xl:mb-8">
           <div className="mr-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-yellow-600 bg-gray-800 shadow-inner xl:h-20 xl:w-20">
             <i className={`fas ${event.icon} ${event.color} text-3xl xl:text-4xl`} />

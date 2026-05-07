@@ -12,7 +12,7 @@ function getTip(gameState, currentEvent) {
   return '先看完夜报，再进入下一天。';
 }
 
-export function MobileActionBar({ gameState, currentEvent, onOpenLog, onEndAfternoon, onNextDay }) {
+export function MobileActionBar({ gameState, currentEvent, onOpenOverview, onOpenLog, onEndAfternoon, onNextDay }) {
   if (gameState.isGameOver) {
     return null;
   }
@@ -28,13 +28,22 @@ export function MobileActionBar({ gameState, currentEvent, onOpenLog, onEndAfter
             <div className="text-[11px] uppercase tracking-[0.28em] text-gray-500">{getPhaseName(gameState.phase)}</div>
             <div className="mt-1 text-sm font-semibold text-gray-100">{getTip(gameState, currentEvent)}</div>
           </div>
-          <button
-            type="button"
-            onClick={onOpenLog}
-            className="shrink-0 rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
-          >
-            <i className="fas fa-book-open mr-2" />史官
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={onOpenOverview}
+              className="rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
+            >
+              <i className="fas fa-chess-king mr-2" />提要
+            </button>
+            <button
+              type="button"
+              onClick={onOpenLog}
+              className="rounded-full border border-gray-600 bg-gray-900/80 px-3 py-2 text-xs font-semibold text-gray-200"
+            >
+              <i className="fas fa-book-open mr-2" />史官
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-xs">

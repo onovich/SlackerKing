@@ -28,6 +28,14 @@ function pushLog(state, text) {
   state.logs.push(createLogEntry(state, text));
 }
 
+function addOpeningChronicleIfNeeded(state) {
+  if (state.day !== 1 || state.logs.length > 0) {
+    return;
+  }
+
+  pushLog(state, '老国王昨夜终于咽了气。天还没亮，侍从们就把你从酒气和绸被里拖出来，披上王袍，按到这张还没坐热的王座上。你不是来做圣君的，你只想先把今天糊弄过去。');
+}
+
 function pushNightSummary(state, tone, text) {
   state.nightSummary.push({
     id: `${state.day}-${state.nightSummary.length}-${tone}`,
@@ -1459,7 +1467,9 @@ export function getRegimeSummary(state, event = getCurrentEvent(state)) {
 }
 
 export function initializeGameState() {
-  return prepareMorning(cloneState(INITIAL_STATE)).state;
+  const state = cloneState(INITIAL_STATE);
+  addOpeningChronicleIfNeeded(state);
+  return prepareMorning(state).state;
 }
 
 export function prepareMorning(currentState) {

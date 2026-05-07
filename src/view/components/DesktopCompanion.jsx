@@ -136,7 +136,7 @@ function getRecentRunSubline(run) {
   return '';
 }
 
-function getGuidance(gameState, visibleRisks, factionOverview) {
+export function getGuidance(gameState, visibleRisks, factionOverview) {
   const lowestResource = Object.entries(gameState.resources).sort((left, right) => left[1] - right[1])[0];
   const highestRisk = visibleRisks[0];
   const leadingFaction = factionOverview[0]?.score >= 3 ? factionOverview[0] : null;

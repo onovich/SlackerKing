@@ -36,7 +36,8 @@ button {
   padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
 }
 
-.mobile-log-panel {
+.mobile-log-panel,
+.mobile-sheet-panel {
   animation: slideUpSheet 0.22s ease-out;
 }
 
