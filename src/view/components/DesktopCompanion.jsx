@@ -41,6 +41,58 @@ function RiskRow({ risk }) {
   );
 }
 
+function getGuidance(gameState, visibleRisks) {
+  const lowestResource = Object.entries(gameState.resources).sort((left, right) => left[1] - right[1])[0];
+  const highestRisk = visibleRisks[0];
+
+  if (gameState.isGameOver) {
+    return {
+      title: '复盘这次败局',
+      body: '回看最后几条史官记录，找出是哪条资源或哪项隐患先失控。下一局先补那一环。',
+    };
+  }
+
+  if (gameState.player.stress >= 75) {
+    return {
+      title: '先处理压力',
+      body: '你的压力已经逼近危险线。下一次午后优先减压，否则可能先死在王座上。',
+    };
+  }
+
+  if (highestRisk?.level.key === 'danger') {
+    return {
+      title: '先压住危急隐患',
+      body: `当前最危险的是“${highestRisk.label}”。优先围绕它做选择，并为夜间后果留出缓冲资源。`,
+    };
+  }
+
+  if (gameState.day <= 3) {
+    return {
+      title: '建立前期安全垫',
+      body: '前 3 天的目标是把四项国家资源尽量稳在 35 以上，不要因为省精力连续埋雷。',
+    };
+  }
+
+  if (lowestResource && lowestResource[1] < 35) {
+    return {
+      title: '先补最弱资源',
+      body: `你当前最脆弱的是“${lowestResource[0] === 'treasury' ? '国库' : lowestResource[0] === 'authority' ? '权威' : lowestResource[0] === 'military' ? '军力' : '民心'}”。接下来优先修这一项，避免单项崩盘。`,
+    };
+  }
+
+  if (highestRisk) {
+    return {
+      title: '确认你的治理倾向',
+      body: `你已经暴露出“${highestRisk.label}”风险。现在不是乱点选项的时候，开始决定你要补权、补军，还是继续享乐硬扛。`,
+    };
+  }
+
+  return {
+    title: '趁平稳期囤余地',
+    body: '局势暂时平静时，优先把国库和军力抬起来。后面真正危险时，你需要足够缓冲。',
+  };
+}
+
 export function DesktopCompanion({ gameState, currentEvent, visibleRisks }) {
   const shortcuts = gameState.isGameOver
     ? [{ keyLabel: 'R', description: '重新开始这一局' }]
@@ -60,6 +112,7 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks }) {
           ];
 
   const latestLog = gameState.logs.at(-1)?.text;
+  const guidance = getGuidance(gameState, visibleRisks);
 
   return (
     <aside className="hidden xl:flex xl:w-72 xl:flex-col xl:gap-4">
@@ -76,6 +129,12 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks }) {
           <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Current Focus</div>
           <div className="mt-2 text-lg font-bold text-gray-100">{gameState.isGameOver ? '王朝落幕' : currentEvent?.title ?? '宫廷事务'}</div>
           <div className="mt-1 text-sm text-gray-400">{gameState.isGameOver ? '按 R 可立即重开' : currentEvent?.tag ?? '当前阶段摘要'}</div>
+        </div>
+
+        <div className="rounded-xl border border-yellow-800/60 bg-yellow-900/10 p-4">
+          <div className="text-xs uppercase tracking-[0.3em] text-yellow-500">Current Objective</div>
+          <div className="mt-2 text-base font-bold text-yellow-200">{guidance.title}</div>
+          <p className="mt-2 text-sm leading-6 text-yellow-100/80">{guidance.body}</p>
         </div>
 
         <div className="space-y-2">
