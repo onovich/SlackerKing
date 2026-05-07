@@ -1,32 +1,18 @@
+import { FAILURE_OUTCOME_CATALOG, VICTORY_OUTCOME_CATALOG } from '../../data/expandedContent.js';
+
 const STORAGE_KEY = 'slackerking-run-records-v1';
 
-export const DEATH_CAUSE_CATALOG = [
-  {
-    id: '中风崩殂',
-    title: '过劳死者',
-    description: '死于长期失控的压力，通常意味着你把减压和节奏管理拖到了太晚。',
-  },
-  {
-    id: '破产引发内乱',
-    title: '乞丐王',
-    description: '国库见底后，王座会先被军饷和暴民一起掀翻。',
-  },
-  {
-    id: '权臣逼宫',
-    title: '傀儡',
-    description: '权威跌穿底线后，朝堂不会再等你把局面慢慢补回来。',
-  },
-  {
-    id: '外敌破城',
-    title: '亡国之君',
-    description: '军力崩塌时，所有外交姿态都会迅速变成亡国倒计时。',
-  },
-  {
-    id: '大革命',
-    title: '断头台贵宾',
-    description: '民心被连续透支后，最先回来的不是忠诚，而是清算。',
-  },
-];
+export const DEATH_CAUSE_CATALOG = FAILURE_OUTCOME_CATALOG.map((entry) => ({
+  id: entry.cause,
+  title: entry.title,
+  description: entry.description,
+}));
+
+export const VICTORY_CAUSE_CATALOG = VICTORY_OUTCOME_CATALOG.map((entry) => ({
+  id: entry.cause,
+  title: entry.title,
+  description: entry.description,
+}));
 
 export const EPITHET_ARCHETYPE_CATALOG = [
   {
@@ -111,7 +97,9 @@ export function createDefaultRunRecords() {
   return {
     bestDay: 0,
     totalRuns: 0,
+    totalVictories: 0,
     deathCauses: {},
+    victoryCauses: {},
     epithets: {},
     recentRuns: [],
   };
@@ -132,7 +120,9 @@ export function loadRunRecords() {
     return {
       bestDay: typeof parsed?.bestDay === 'number' ? parsed.bestDay : 0,
       totalRuns: typeof parsed?.totalRuns === 'number' ? parsed.totalRuns : 0,
+      totalVictories: typeof parsed?.totalVictories === 'number' ? parsed.totalVictories : 0,
       deathCauses: parsed?.deathCauses && typeof parsed.deathCauses === 'object' ? parsed.deathCauses : {},
+      victoryCauses: parsed?.victoryCauses && typeof parsed.victoryCauses === 'object' ? parsed.victoryCauses : {},
       epithets: parsed?.epithets && typeof parsed.epithets === 'object' ? parsed.epithets : {},
       recentRuns: Array.isArray(parsed?.recentRuns) ? parsed.recentRuns.filter((entry) => entry && typeof entry === 'object').slice(0, 6) : [],
     };
@@ -154,6 +144,7 @@ export function recordFinishedRun(records, runSummary) {
     {
       day: runSummary.day ?? 0,
       cause: runSummary.cause ?? '',
+      isVictory: Boolean(runSummary.isVictory),
       epithet: runSummary.epithet ?? '',
       title: runSummary.title ?? '',
       routeTitle: runSummary.routeTitle ?? '',
@@ -166,14 +157,20 @@ export function recordFinishedRun(records, runSummary) {
 
   const next = {
     bestDay: Math.max(records?.bestDay ?? 0, runSummary.day ?? 0),
-    totalRuns: (records?.totalRuns ?? 0) + 1,
+    totalRuns: (records?.totalRuns ?? 0) + (runSummary.isVictory ? 0 : 1),
+    totalVictories: (records?.totalVictories ?? 0) + (runSummary.isVictory ? 1 : 0),
     deathCauses: { ...(records?.deathCauses ?? {}) },
+    victoryCauses: { ...(records?.victoryCauses ?? {}) },
     epithets: { ...(records?.epithets ?? {}) },
     recentRuns: nextRecentRuns,
   };
 
   if (runSummary.cause) {
-    next.deathCauses[runSummary.cause] = (next.deathCauses[runSummary.cause] ?? 0) + 1;
+    if (runSummary.isVictory) {
+      next.victoryCauses[runSummary.cause] = (next.victoryCauses[runSummary.cause] ?? 0) + 1;
+    } else {
+      next.deathCauses[runSummary.cause] = (next.deathCauses[runSummary.cause] ?? 0) + 1;
+    }
   }
 
   if (runSummary.epithet) {
@@ -186,6 +183,17 @@ export function recordFinishedRun(records, runSummary) {
 export function getDeathCauseCodex(records) {
   return DEATH_CAUSE_CATALOG.map((entry) => {
     const count = records?.deathCauses?.[entry.id] ?? 0;
+    return {
+      ...entry,
+      unlocked: count > 0,
+      count,
+    };
+  });
+}
+
+export function getVictoryOutcomeCodex(records) {
+  return VICTORY_CAUSE_CATALOG.map((entry) => {
+    const count = records?.victoryCauses?.[entry.id] ?? 0;
     return {
       ...entry,
       unlocked: count > 0,

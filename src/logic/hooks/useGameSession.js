@@ -105,12 +105,13 @@ export function useGameSession() {
       const next = recordFinishedRun(current, {
         day: gameState.day,
         cause: gameState.gameOver?.cause,
+        isVictory: gameState.gameOver?.isVictory,
         epithet: gameState.gameOver?.regimeSummary?.epithet,
         title: gameState.gameOver?.title,
         routeTitle: gameState.gameOver?.regimeSummary?.title,
         routeBody: gameState.gameOver?.regimeSummary?.body,
         primaryFaction: gameState.gameOver?.regimeSummary?.primaryFaction?.label,
-        figures: gameState.gameOver?.regimeSummary?.figures?.map((figure) => figure.name),
+        figures: gameState.gameOver?.regimeSummary?.figures?.map((figure) => figure.displayName ?? figure.name),
       });
       setNewlyUnlockedMilestones(getNewlyUnlockedArchiveMilestones(current, next));
       saveRunRecords(next);

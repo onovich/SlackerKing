@@ -1,6 +1,11 @@
-import { getArchiveMilestones, getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
+import { getArchiveMilestones, getDeathCauseCodex, getEpithetArchetypeCodex, getVictoryOutcomeCodex } from '../../logic/storage/runRecords';
 
-function getRetryHint(cause) {
+function getOutcomeHint(gameOver) {
+  if (gameOver?.isVictory) {
+    return '这条活法已经被你跑通了。下一局可以故意换一条主路线，看看同样的乱局还能被你糊弄出多少种收场。';
+  }
+
+  const cause = gameOver?.cause;
   if (cause === '中风崩殂') {
     return '你不是死于大事，而是死于长期失控的压力。下一局把减压当成硬约束，而不是可选项。';
   }
@@ -25,7 +30,7 @@ function getRetryHint(cause) {
 }
 
 function getFigureNames(regimeSummary) {
-  return regimeSummary?.figures?.map((figure) => figure.name).join('、') ?? '';
+  return regimeSummary?.figures?.map((figure) => figure.displayName ?? figure.name).join('、') ?? '';
 }
 
 function getRecordEntries(recordMap) {
@@ -76,22 +81,24 @@ function MilestoneBadge({ entry }) {
 }
 
 export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilestones, onRestart }) {
-  const retryHint = getRetryHint(gameOver?.cause);
+  const retryHint = getOutcomeHint(gameOver);
   const figureNames = getFigureNames(gameOver?.regimeSummary);
   const deathCauseEntries = getRecordEntries(runRecords?.deathCauses).slice(0, 4);
   const epithetEntries = getRecordEntries(runRecords?.epithets).slice(0, 3);
   const recentRuns = getRecentRuns(runRecords);
   const deathCauseCodex = getDeathCauseCodex(runRecords);
+  const victoryOutcomeCodex = getVictoryOutcomeCodex(runRecords);
   const epithetCodex = getEpithetArchetypeCodex(runRecords);
   const archiveMilestones = getArchiveMilestones(runRecords);
+  const isVictory = Boolean(gameOver?.isVictory);
 
   return (
-    <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
-      <i className="fas fa-skull-crossbones mb-6 text-7xl text-red-600 drop-shadow-lg" />
-      <h2 className="mb-2 text-4xl font-black tracking-widest text-gray-100">驾 崩</h2>
-      <div className="mx-auto mb-6 h-1 w-24 bg-red-600" />
+    <section className={`parchment flex w-full max-w-xl flex-col rounded-xl border-4 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10 ${isVictory ? 'border-emerald-700 shadow-[0_0_30px_rgba(16,185,129,0.2)]' : 'border-red-800'}`}>
+      <i className={`fas ${isVictory ? 'fa-crown' : 'fa-skull-crossbones'} mb-6 text-7xl drop-shadow-lg ${isVictory ? 'text-emerald-400' : 'text-red-600'}`} />
+      <h2 className="mb-2 text-4xl font-black tracking-widest text-gray-100">{isVictory ? '功 成' : '驾 崩'}</h2>
+      <div className={`mx-auto mb-6 h-1 w-24 ${isVictory ? 'bg-emerald-500' : 'bg-red-600'}`} />
 
-      <h3 className="mb-4 text-2xl font-bold text-yellow-500">{gameOver?.cause}</h3>
+      <h3 className={`mb-4 text-2xl font-bold ${isVictory ? 'text-emerald-300' : 'text-yellow-500'}`}>{gameOver?.cause}</h3>
       <p className="mb-8 rounded bg-gray-900/50 p-4 text-lg leading-relaxed text-gray-300">{gameOver?.desc}</p>
 
       <div className="mb-8 grid grid-cols-2 gap-4 rounded bg-gray-800 p-4 text-left text-sm text-gray-400">
@@ -99,7 +106,7 @@ export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilesto
           在位天数: <span className="font-bold text-white">{day}</span>
         </div>
         <div>
-          最终声望: <span className="font-bold text-yellow-400">{gameOver?.title}</span>
+          最终称谓: <span className={`font-bold ${isVictory ? 'text-emerald-300' : 'text-yellow-400'}`}>{gameOver?.title}</span>
         </div>
       </div>
 
@@ -138,7 +145,13 @@ export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilesto
             累计败局: <span className="font-bold text-white">{runRecords?.totalRuns ?? 0}</span>
           </div>
           <div>
+            累计成功: <span className="font-bold text-emerald-200">{runRecords?.totalVictories ?? 0}</span>
+          </div>
+          <div>
             已见死法: <span className="font-bold text-white">{Object.keys(runRecords?.deathCauses ?? {}).length}</span>
+          </div>
+          <div>
+            已见胜局: <span className="font-bold text-emerald-200">{Object.keys(runRecords?.victoryCauses ?? {}).length}</span>
           </div>
           <div>
             已获称号: <span className="font-bold text-white">{Object.keys(runRecords?.epithets ?? {}).length}</span>
@@ -177,7 +190,7 @@ export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilesto
             <div className="mt-2 space-y-2">
               {recentRuns.map((run, index) => (
                 <div key={`${run.day}-${run.cause}-${index}`} className="rounded-lg border border-gray-700/70 bg-gray-950/40 px-3 py-2 text-xs text-gray-300">
-                  <div className="font-semibold text-gray-100">第 {run.day} 天驾崩 · {run.cause || '未知败局'}</div>
+                  <div className="font-semibold text-gray-100">第 {run.day} 天{run.isVictory ? '功成' : '驾崩'} · {run.cause || (run.isVictory ? '未知胜局' : '未知败局')}</div>
                   <div className="mt-1 text-gray-500">{run.epithet || run.title || '无称号记录'}</div>
                   {run.routeTitle ? <div className="mt-1 text-gray-300">{run.routeTitle}</div> : null}
                   {getRecentRunSubline(run) ? <div className="mt-1 text-gray-500">{getRecentRunSubline(run)}</div> : null}
@@ -206,6 +219,15 @@ export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilesto
         </div>
 
         <div className="mt-4">
+          <div className="text-xs uppercase tracking-[0.25em] text-gray-500">胜局图鉴</div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {victoryOutcomeCodex.map((entry) => (
+              <CodexBadge key={entry.id} entry={entry} accentClass="border-emerald-800/70 bg-emerald-950/20 text-emerald-100" lockedLabel="尚未达成这种胜局。" />
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
           <div className="text-xs uppercase tracking-[0.25em] text-gray-500">统治原型图鉴</div>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {epithetCodex.map((entry) => (
@@ -218,9 +240,9 @@ export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilesto
       <button
         type="button"
         onClick={onRestart}
-        className="w-full rounded-lg border border-red-500 bg-red-800 px-8 py-3 font-bold text-white transition hover:bg-red-700"
+        className={`w-full rounded-lg border px-8 py-3 font-bold text-white transition ${isVictory ? 'border-emerald-500 bg-emerald-700 hover:bg-emerald-600' : 'border-red-500 bg-red-800 hover:bg-red-700'}`}
       >
-        <i className="fas fa-redo mr-2" />下一世再做庸君
+        <i className="fas fa-redo mr-2" />{isVictory ? '再开一局换条活法' : '下一世再做庸君'}
       </button>
       <div className="mt-4 hidden text-sm text-gray-500 xl:block">桌面端可按 R 快速重开。</div>
     </section>

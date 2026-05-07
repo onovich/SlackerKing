@@ -115,7 +115,7 @@ function getRegimeTone(regimeSummary) {
 }
 
 function getFigureNames(regimeSummary) {
-  return regimeSummary?.figures?.map((figure) => figure.name).join('、') ?? '';
+  return regimeSummary?.figures?.map((figure) => figure.displayName ?? figure.name).join('、') ?? '';
 }
 
 export function NightScreen({ summary, dailyChanges, regimeSummary, onNextDay }) {

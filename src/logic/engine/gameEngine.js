@@ -1,4 +1,5 @@
 import { CHARACTER_META, FACTION_META, INITIAL_DAILY_CHANGES, INITIAL_FACTION_STANDINGS, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
+import { OUTCOME_RULES } from '../../data/expandedContent.js';
 
 function cloneState(state) {
   return {
@@ -128,46 +129,180 @@ function applyFactionEffects(state, factionEffects) {
   });
 }
 
+function applyNumericFlagChanges(state, flagChanges) {
+  if (!flagChanges) {
+    return;
+  }
+
+  Object.entries(flagChanges).forEach(([key, delta]) => {
+    if (typeof delta !== 'number') {
+      return;
+    }
+
+    const current = typeof getFlag(state, key) === 'number' ? getFlag(state, key) : 0;
+    const next = current + delta;
+    if (next <= 0) {
+      deleteFlag(state, key);
+      return;
+    }
+
+    setFlag(state, key, next);
+  });
+}
+
+function applyDeclarativeEffect(state, payload) {
+  if (!payload) {
+    return false;
+  }
+
+  let damage = false;
+
+  if (payload.statChanges) {
+    damage ||= applyStatChanges(state, payload.statChanges);
+  }
+
+  if (payload.factionEffects) {
+    applyFactionEffects(state, payload.factionEffects);
+  }
+
+  if (payload.riskChanges) {
+    applyNumericFlagChanges(state, payload.riskChanges);
+  }
+
+  if (payload.setFlags) {
+    Object.entries(payload.setFlags).forEach(([key, value]) => {
+      setFlag(state, key, value);
+    });
+  }
+
+  if (Array.isArray(payload.clearFlags)) {
+    payload.clearFlags.forEach((key) => deleteFlag(state, key));
+  }
+
+  if (payload.aftermath) {
+    Object.entries(payload.aftermath).forEach(([key, value]) => {
+      markAftermath(state, key, value);
+    });
+  }
+
+  if (Array.isArray(payload.resolveAftermath)) {
+    payload.resolveAftermath.forEach((key) => resolveAftermath(state, key));
+  }
+
+  if (typeof payload.log === 'string' && payload.log.trim()) {
+    pushLog(state, payload.log);
+  }
+
+  if (payload.nightSummary && typeof payload.nightSummary.text === 'string') {
+    pushNightSummary(state, payload.nightSummary.tone ?? 'info', payload.nightSummary.text);
+  }
+
+  return damage;
+}
+
+function getTotalRiskPressure(state) {
+  return Object.keys(RISK_META).reduce((sum, key) => {
+    const value = getFlag(state, key);
+    return sum + (typeof value === 'number' && value > 0 ? value : 0);
+  }, 0);
+}
+
+function matchesThresholdMap(stateValueSource, thresholds, comparator) {
+  if (!thresholds) {
+    return true;
+  }
+
+  return Object.entries(thresholds).every(([key, value]) => comparator(stateValueSource(key), value));
+}
+
+function getStateScalar(state, key) {
+  if (key === 'stress') {
+    return state.player.stress;
+  }
+
+  if (key === 'energy') {
+    return state.player.energy;
+  }
+
+  if (key in state.resources) {
+    return state.resources[key];
+  }
+
+  if (key in state.factions) {
+    return state.factions[key];
+  }
+
+  const flagValue = getFlag(state, key);
+  return typeof flagValue === 'number' ? flagValue : 0;
+}
+
+function doesOutcomeRuleMatch(state, rule) {
+  if (rule.phase && state.phase !== rule.phase) {
+    return false;
+  }
+
+  if (typeof rule.minDay === 'number' && state.day < rule.minDay) {
+    return false;
+  }
+
+  if (typeof rule.maxDay === 'number' && state.day > rule.maxDay) {
+    return false;
+  }
+
+  if (typeof rule.stressAtLeast === 'number' && state.player.stress < rule.stressAtLeast) {
+    return false;
+  }
+
+  if (typeof rule.stressAtMost === 'number' && state.player.stress > rule.stressAtMost) {
+    return false;
+  }
+
+  if (!matchesThresholdMap((key) => getStateScalar(state, key), rule.resourcesAtLeast, (current, target) => current >= target)) {
+    return false;
+  }
+
+  if (!matchesThresholdMap((key) => getStateScalar(state, key), rule.resourcesAtMost, (current, target) => current <= target)) {
+    return false;
+  }
+
+  if (!matchesThresholdMap((key) => getStateScalar(state, key), rule.factionsAtLeast, (current, target) => current >= target)) {
+    return false;
+  }
+
+  if (!matchesThresholdMap((key) => getStateScalar(state, key), rule.flagsAtLeast, (current, target) => current >= target)) {
+    return false;
+  }
+
+  if (!matchesThresholdMap((key) => getStateScalar(state, key), rule.flagsAtMost, (current, target) => current <= target)) {
+    return false;
+  }
+
+  if (typeof rule.maxTotalRisk === 'number' && getTotalRiskPressure(state) > rule.maxTotalRisk) {
+    return false;
+  }
+
+  return true;
+}
+
 function evaluateGameOver(state) {
   if (state.isGameOver) {
     return;
   }
 
-  let cause = null;
-  let title = '';
-  let desc = '';
+  const matchedOutcome = [...OUTCOME_RULES]
+    .sort((left, right) => (right.priority ?? 0) - (left.priority ?? 0))
+    .find((rule) => doesOutcomeRuleMatch(state, rule));
 
-  if (state.player.stress >= 100) {
-    cause = '中风崩殂';
-    title = '过劳死者';
-    desc = '无休止的政治斗争和巨大的压力摧毁了你的大脑。你在批阅奏章时倒地不起，甚至没人发现，直到你的宠物狗开始舔你的脸。';
-  } else if (state.resources.treasury <= 0) {
-    cause = '破产引发内乱';
-    title = '乞丐王';
-    desc = '国库连一枚铜币都倒不出来了。禁军因为欠饷打开了城门，愤怒的暴民冲进宫廷，将你扒光衣服吊死在广场上。';
-  } else if (state.resources.authority <= 0) {
-    cause = '权臣逼宫';
-    title = '傀儡';
-    desc = '你的懦弱让宰相彻底掌握了实权。他递给你一杯毒酒和一份退位诏书，你颤抖着喝下毒酒，结束了这糊弄的一生。';
-  } else if (state.resources.military <= 0) {
-    cause = '外敌破城';
-    title = '亡国之君';
-    desc = '敌国的铁蹄踏破了首都。你试图混在逃难的农民中溜走，但因为肚子太大且满身香水味被敌军斥候认出，沦为阶下囚。';
-  } else if (state.resources.favor <= 0) {
-    cause = '大革命';
-    title = '断头台贵宾';
-    desc = '人民受够了你的荒唐。他们自制了叫做“断头台”的机器，并热情地邀请你成为了第一个体验者。咔嚓。';
-  }
-
-  if (cause) {
+  if (matchedOutcome) {
     state.isGameOver = true;
     state.gameOver = {
-      cause,
-      title,
-      desc,
+      cause: matchedOutcome.cause,
+      title: matchedOutcome.title,
+      desc: matchedOutcome.desc,
+      isVictory: Boolean(matchedOutcome.isVictory),
       regimeSummary: getRegimeSummary(state),
     };
-    pushLog(state, `【驾崩】 ${cause}`);
+    pushLog(state, `${matchedOutcome.isVictory ? '【功成】' : '【驾崩】'} ${matchedOutcome.cause}`);
   }
 }
 
@@ -193,6 +328,19 @@ const eventConditions = {
   spy_dossier_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'spy_dossier_aftermath')) && !getFlag(state, 'spy_dossier_aftermath_seen') && (state.factions.foreign || 0) >= 1,
   treasury_audit_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'treasury_audit_aftermath')) && !getFlag(state, 'treasury_audit_aftermath_seen') && (state.factions.merchants || 0) >= 1,
   chapel_vigil_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'chapel_vigil_aftermath')) && !getFlag(state, 'chapel_vigil_aftermath_seen') && (state.factions.old_nobles || 0) >= 1,
+  court_cycle_ready: (state) => state.day > 1,
+  treasury_pressure_ready: (state) => state.day > 1 && state.resources.treasury < 70,
+  authority_pressure_ready: (state) => state.day > 1 && state.resources.authority < 70,
+  public_grievance_ready: (state) => state.day > 1 && (state.resources.favor < 75 || state.resources.treasury < 70),
+  regional_audience_ready: (state) => state.day > 1,
+  household_cycle_ready: (state) => state.day > 2,
+  clergy_cycle_ready: (state) => state.day > 2 && (state.resources.favor < 80 || (state.factions.old_nobles || 0) >= 2),
+  intrigue_cycle_ready: (state) => state.day > 3,
+  border_cycle_ready: (state) => state.day > 3 && ((state.factions.foreign || 0) >= 1 || (state.factions.military || 0) >= 2),
+  old_nobles_route_ready: (state) => state.day > 2 && (state.factions.old_nobles || 0) >= 2,
+  military_route_ready: (state) => state.day > 2 && (state.factions.military || 0) >= 2,
+  merchants_route_ready: (state) => state.day > 2 && (state.factions.merchants || 0) >= 2,
+  foreign_route_ready: (state) => state.day > 2 && (state.factions.foreign || 0) >= 2,
   magic_beast_ready: (state) => state.day > 5 && !getFlag(state, 'beast_seen'),
   corrupt_hand_ready: (state) => state.resources.authority < 60 && !getFlag(state, 'hand_warned'),
 };
@@ -719,23 +867,10 @@ function getSuppressedRiskKey(state) {
 }
 
 function pickSpyTarget(state) {
-  const candidates = [];
+  const candidateKeys = Array.from(new Set(nightEvents.map((event) => event.riskKey)));
 
-  if ((getFlag(state, 'khan_war') || 0) > 0) {
-    candidates.push({ key: 'khan_war', progress: getFlag(state, 'khan_war') || 0 });
-  } else if ((getFlag(state, 'envoy_active') || 0) > 0) {
-    candidates.push({ key: 'envoy_active', progress: getFlag(state, 'envoy_active') || 0 });
-  }
-
-  candidates.push({ key: 'hand_power', progress: getFlag(state, 'hand_power') || 0 });
-  candidates.push({ key: 'southern_mess', progress: getFlag(state, 'southern_mess') || 0 });
-  candidates.push({ key: 'messy_admin', progress: getFlag(state, 'messy_admin') || 0 });
-  candidates.push({ key: 'nobles_excess', progress: getFlag(state, 'nobles_excess') || 0 });
-  candidates.push({ key: 'military_overreach', progress: getFlag(state, 'military_overreach') || 0 });
-  candidates.push({ key: 'merchants_corruption', progress: getFlag(state, 'merchants_corruption') || 0 });
-  candidates.push({ key: 'foreign_infiltration', progress: getFlag(state, 'foreign_infiltration') || 0 });
-
-  return candidates
+  return candidateKeys
+    .map((key) => ({ key, progress: getFlag(state, key) || 0 }))
     .filter((item) => item.progress > 0)
     .sort((left, right) => right.progress - left.progress)[0]?.key ?? null;
 }
@@ -860,7 +995,13 @@ function resolveNightThreats(state, suppressedRiskKey) {
     }
 
     if (progress >= event.triggerThreshold) {
-      const result = (nightEffects[event.effectId] ?? (() => ''))(state);
+      let result = '';
+      if (event.effectId) {
+        result = (nightEffects[event.effectId] ?? (() => ''))(state);
+      } else {
+        applyDeclarativeEffect(state, event.effect);
+        result = event.resultText ?? '';
+      }
       deleteFlag(state, warningFlagKey);
       resolvedRiskKeys.add(event.riskKey);
       if (!result) {
@@ -889,7 +1030,10 @@ function resolveNightThreats(state, suppressedRiskKey) {
 }
 
 function pickMorningEvent(state) {
-  const pool = eventDatabase.filter((event) => eventConditions[event.conditionId](state) && !state.history.includes(event.id));
+  const pool = eventDatabase.filter((event) => {
+    const condition = eventConditions[event.conditionId];
+    return typeof condition === 'function' && condition(state) && !state.history.includes(event.id);
+  });
 
   if (pool.length === 0) {
     return defaultEvent;
@@ -1018,20 +1162,14 @@ export function getVisibleRisks(state) {
     });
   };
 
-  pushRisk('hand_power', getFlag(state, 'hand_power') || 0);
-  pushRisk('southern_mess', getFlag(state, 'southern_mess') || 0);
-  pushRisk('messy_admin', getFlag(state, 'messy_admin') || 0);
-  pushRisk('nobles_excess', getFlag(state, 'nobles_excess') || 0);
-  pushRisk('military_overreach', getFlag(state, 'military_overreach') || 0);
-  pushRisk('merchants_corruption', getFlag(state, 'merchants_corruption') || 0);
-  pushRisk('foreign_infiltration', getFlag(state, 'foreign_infiltration') || 0);
+  const riskKeys = Array.from(new Set([...Object.keys(RISK_META), ...nightEvents.map((event) => event.riskKey)]));
+  riskKeys.forEach((key) => {
+    if (key === 'envoy_active' && (getFlag(state, 'khan_war') || 0) > 0) {
+      return;
+    }
 
-  const envoyProgress = Math.max(getFlag(state, 'envoy_active') || 0, getFlag(state, 'khan_war') || 0);
-  if ((getFlag(state, 'khan_war') || 0) > 0) {
-    pushRisk('khan_war', getFlag(state, 'khan_war') || 0);
-  } else {
-    pushRisk('envoy_active', envoyProgress);
-  }
+    pushRisk(key, getFlag(state, key) || 0);
+  });
 
   return risks.sort((left, right) => right.progress - left.progress);
 }
@@ -1071,7 +1209,18 @@ export function getCourtFigures(state, event) {
   }
 
   return Array.from(ids)
-    .map((id) => CHARACTER_META[id] ? ({ id, ...CHARACTER_META[id] }) : null)
+    .map((id) => {
+      if (!CHARACTER_META[id]) {
+        return null;
+      }
+
+      const meta = CHARACTER_META[id];
+      return {
+        id,
+        ...meta,
+        displayName: meta.nickname ? `${meta.name}「${meta.nickname}」` : meta.name,
+      };
+    })
     .filter(Boolean);
 }
 
@@ -1228,6 +1377,7 @@ export function resolveMorningChoice(currentState, choiceId) {
 
   let damage = applyStatChanges(state, { energy: -choice.energy });
   (choiceEffects[choice.effectId] ?? (() => {}))(state);
+  damage ||= applyDeclarativeEffect(state, choice.effect);
   applyFactionEffects(state, choice.factionEffects);
   evaluateGameOver(state);
 

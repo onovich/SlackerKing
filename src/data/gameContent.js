@@ -1,3 +1,5 @@
+import { ADDITIONAL_CHARACTER_META, CHARACTER_OVERRIDES, EXTRA_MORNING_EVENTS, EXTRA_NIGHT_EVENTS, EXTRA_RISK_META } from './expandedContent.js';
+
 export const RESOURCE_KEYS = ['treasury', 'authority', 'military', 'favor'];
 
 export const RESOURCE_META = {
@@ -56,7 +58,7 @@ export const FACTION_META = {
   },
 };
 
-export const CHARACTER_META = {
+const BASE_CHARACTER_META = {
   queen_isabella: {
     name: '伊莎贝拉王后',
     title: '旧贵族领袖',
@@ -101,7 +103,13 @@ export const CHARACTER_META = {
   },
 };
 
-export const RISK_META = {
+export const CHARACTER_META = {
+  ...BASE_CHARACTER_META,
+  ...CHARACTER_OVERRIDES,
+  ...ADDITIONAL_CHARACTER_META,
+};
+
+const BASE_RISK_META = {
   hand_power: {
     label: '宰相权势扩张',
     icon: 'fa-landmark',
@@ -194,6 +202,11 @@ export const RISK_META = {
   },
 };
 
+export const RISK_META = {
+  ...BASE_RISK_META,
+  ...EXTRA_RISK_META,
+};
+
 export const INITIAL_DAILY_CHANGES = {
   treasury: 0,
   authority: 0,
@@ -227,7 +240,7 @@ export const INITIAL_STATE = {
   gameOver: null,
 };
 
-export const eventDatabase = [
+const BASE_EVENT_DATABASE = [
   {
     id: 'e_tax_revolt',
     tag: '内政危机',
@@ -615,6 +628,8 @@ export const eventDatabase = [
   },
 ];
 
+export const eventDatabase = [...BASE_EVENT_DATABASE, ...EXTRA_MORNING_EVENTS];
+
 export const defaultEvent = {
   id: 'e_daily_routine',
   title: '琐碎的政务',
@@ -639,7 +654,7 @@ export const locations = [
   { id: 'visit_sleep', name: '寝宫大睡', icon: 'fa-bed', color: 'text-blue-400', desc: '什么都不做，纯躺平。(恢复精力, 降压, 轻微失威)', actionId: 'visit_sleep', factionEffects: {} },
 ];
 
-export const nightEvents = [
+const BASE_NIGHT_EVENTS = [
   {
     id: 'n_hand_coup',
     riskKey: 'hand_power',
@@ -705,3 +720,5 @@ export const nightEvents = [
     effectId: 'foreign_infiltration',
   },
 ];
+
+export const nightEvents = [...BASE_NIGHT_EVENTS, ...EXTRA_NIGHT_EVENTS];

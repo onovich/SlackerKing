@@ -1,4 +1,4 @@
-import { getArchiveMilestones, getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
+import { getArchiveMilestones, getDeathCauseCodex, getEpithetArchetypeCodex, getVictoryOutcomeCodex } from '../../logic/storage/runRecords';
 
 function ShortcutRow({ keyLabel, description }) {
   return (
@@ -72,7 +72,7 @@ function FigureRow({ figure }) {
     <div className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3">
       <div className="flex items-center gap-2 text-sm font-bold text-gray-100">
         <i className={`fas ${figure.icon} ${figure.accentClass}`} />
-        <span>{figure.name}</span>
+        <span>{figure.displayName ?? figure.name}</span>
       </div>
       <div className="mt-1 text-xs text-gray-500">{figure.title}</div>
       <p className="mt-2 text-xs leading-5 text-gray-400">{figure.description}</p>
@@ -217,9 +217,11 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
   const latestLog = gameState.logs.at(-1)?.text;
   const guidance = getGuidance(gameState, visibleRisks, factionOverview);
   const topDeathCause = getTopEntry(runRecords?.deathCauses);
+  const topVictory = getTopEntry(runRecords?.victoryCauses);
   const topEpithet = getTopEntry(runRecords?.epithets);
   const recentRuns = getRecentRuns(runRecords);
   const deathCauseCodex = getDeathCauseCodex(runRecords);
+  const victoryOutcomeCodex = getVictoryOutcomeCodex(runRecords);
   const epithetCodex = getEpithetArchetypeCodex(runRecords);
   const archiveMilestones = getArchiveMilestones(runRecords);
 
@@ -266,12 +268,19 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
           <div className="grid grid-cols-2 gap-2">
             <ArchiveChip label="最长在位" value={`${runRecords?.bestDay ?? 0} 天`} toneClass="text-white" />
             <ArchiveChip label="累计败局" value={runRecords?.totalRuns ?? 0} toneClass="text-white" />
+            <ArchiveChip label="累计成功" value={runRecords?.totalVictories ?? 0} toneClass="text-emerald-200" />
             <ArchiveChip label="已见死法" value={Object.keys(runRecords?.deathCauses ?? {}).length} toneClass="text-red-200" />
+            <ArchiveChip label="已见胜局" value={Object.keys(runRecords?.victoryCauses ?? {}).length} toneClass="text-emerald-200" />
             <ArchiveChip label="已获称号" value={Object.keys(runRecords?.epithets ?? {}).length} toneClass="text-yellow-200" />
           </div>
           {topDeathCause ? (
             <div className="rounded-xl border border-red-800/60 bg-red-950/20 p-3 text-xs leading-5 text-red-100">
               最常见死法：{topDeathCause[0]} x{topDeathCause[1]}
+            </div>
+          ) : null}
+          {topVictory ? (
+            <div className="rounded-xl border border-emerald-800/60 bg-emerald-950/20 p-3 text-xs leading-5 text-emerald-100">
+              最常达成胜局：{topVictory[0]} x{topVictory[1]}
             </div>
           ) : null}
           {topEpithet ? (
@@ -288,7 +297,7 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
               <div className="text-xs uppercase tracking-[0.25em] text-gray-500">最近几局</div>
               {recentRuns.map((run, index) => (
                 <div key={`${run.day}-${run.cause}-${index}`} className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3 text-xs leading-5 text-gray-300">
-                  <div className="font-semibold text-gray-100">第 {run.day} 天 · {run.cause || '未知败局'}</div>
+                  <div className="font-semibold text-gray-100">第 {run.day} 天 · {run.isVictory ? '功成' : '驾崩'} · {run.cause || (run.isVictory ? '未知胜局' : '未知败局')}</div>
                   <div className="mt-1 text-gray-500">{run.epithet || run.title || '无称号记录'}</div>
                   {run.routeTitle ? <div className="mt-1 text-gray-300">{run.routeTitle}</div> : null}
                   {getRecentRunSubline(run) ? <div className="mt-1 text-gray-500">{getRecentRunSubline(run)}</div> : null}
@@ -309,6 +318,14 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
             <div className="grid gap-2">
               {deathCauseCodex.map((entry) => (
                 <CodexEntry key={entry.id} entry={entry} accentClass="border-red-800/70 bg-red-950/20 text-red-100" lockedLabel="尚未见过这种败局。" />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs uppercase tracking-[0.25em] text-gray-500">胜局图鉴</div>
+            <div className="grid gap-2">
+              {victoryOutcomeCodex.map((entry) => (
+                <CodexEntry key={entry.id} entry={entry} accentClass="border-emerald-800/70 bg-emerald-950/20 text-emerald-100" lockedLabel="尚未达成这种胜局。" />
               ))}
             </div>
           </div>

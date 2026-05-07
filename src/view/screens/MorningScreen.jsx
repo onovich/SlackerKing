@@ -5,7 +5,7 @@ function FigureChip({ figure }) {
     <div className="rounded-xl border border-gray-700/80 bg-gray-900/60 px-3 py-2">
       <div className="flex items-center gap-2 text-sm font-bold text-gray-100">
         <i className={`fas ${figure.icon} ${figure.accentClass}`} />
-        <span>{figure.name}</span>
+        <span>{figure.displayName ?? figure.name}</span>
       </div>
       <div className="mt-1 text-xs text-gray-500">{figure.title}</div>
     </div>
