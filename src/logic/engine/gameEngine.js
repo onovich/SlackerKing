@@ -1,4 +1,4 @@
-import { INITIAL_DAILY_CHANGES, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
+import { FACTION_META, INITIAL_DAILY_CHANGES, INITIAL_FACTION_STANDINGS, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
 
 function cloneState(state) {
   return {
@@ -6,6 +6,7 @@ function cloneState(state) {
     resources: { ...state.resources },
     player: { ...state.player },
     flags: { ...state.flags },
+    factions: { ...state.factions },
     history: [...state.history],
     logs: [...state.logs],
     nightSummary: [...state.nightSummary],
@@ -100,6 +101,21 @@ function applyStatChanges(state, changes) {
   state.dailyChanges.energy += state.player.energy - previous.energy;
 
   return damage;
+}
+
+function applyFactionEffects(state, factionEffects) {
+  if (!factionEffects) {
+    return;
+  }
+
+  Object.entries(factionEffects).forEach(([key, delta]) => {
+    if (!(key in FACTION_META) || typeof delta !== 'number') {
+      return;
+    }
+
+    const current = state.factions[key] ?? INITIAL_FACTION_STANDINGS[key] ?? 0;
+    state.factions[key] = Math.max(0, Math.min(9, current + delta));
+  });
 }
 
 function evaluateGameOver(state) {
@@ -499,6 +515,38 @@ function getRiskLevel(progress, levels) {
   };
 }
 
+function getFactionLevel(score) {
+  if (score >= 5) {
+    return {
+      label: '押注',
+      badgeClass: 'border-red-700/70 bg-red-900/30 text-red-200',
+      barClass: 'bg-red-500',
+    };
+  }
+
+  if (score >= 3) {
+    return {
+      label: '靠拢',
+      badgeClass: 'border-yellow-700/70 bg-yellow-900/30 text-yellow-200',
+      barClass: 'bg-yellow-500',
+    };
+  }
+
+  if (score >= 1) {
+    return {
+      label: '试探',
+      badgeClass: 'border-blue-700/70 bg-blue-900/30 text-blue-200',
+      barClass: 'bg-blue-500',
+    };
+  }
+
+  return {
+    label: '观望',
+    badgeClass: 'border-gray-700/70 bg-gray-900/40 text-gray-300',
+    barClass: 'bg-gray-600',
+  };
+}
+
 export function getVisibleRisks(state) {
   const risks = [];
   const suppressedRiskKey = getSuppressedRiskKey(state);
@@ -534,6 +582,26 @@ export function getVisibleRisks(state) {
   }
 
   return risks.sort((left, right) => right.progress - left.progress);
+}
+
+export function getFactionOverview(state) {
+  const factions = Object.entries(FACTION_META)
+    .map(([id, meta]) => ({
+      id,
+      label: meta.label,
+      icon: meta.icon,
+      accentClass: meta.accentClass,
+      summary: meta.summary,
+      score: state.factions?.[id] ?? 0,
+      level: getFactionLevel(state.factions?.[id] ?? 0),
+    }))
+    .sort((left, right) => right.score - left.score);
+
+  const leadScore = factions[0]?.score ?? 0;
+  return factions.map((faction) => ({
+    ...faction,
+    isLeading: leadScore > 0 && faction.score === leadScore,
+  }));
 }
 
 export function initializeGameState() {
@@ -585,6 +653,7 @@ export function resolveMorningChoice(currentState, choiceId) {
 
   let damage = applyStatChanges(state, { energy: -choice.energy });
   (choiceEffects[choice.effectId] ?? (() => {}))(state);
+  applyFactionEffects(state, choice.factionEffects);
   evaluateGameOver(state);
 
   return {
@@ -620,6 +689,7 @@ export function resolveLocationVisit(currentState, locationId) {
 
   state.player.ap -= 1;
   (locationActions[location.actionId] ?? (() => {}))(state);
+  applyFactionEffects(state, location.factionEffects);
   evaluateGameOver(state);
 
   return {

@@ -41,9 +41,34 @@ function RiskRow({ risk }) {
   );
 }
 
-function getGuidance(gameState, visibleRisks) {
+function FactionRow({ faction }) {
+  const width = faction.score > 0 ? Math.min(100, faction.score * 18) : 8;
+
+  return (
+    <div className={`rounded-xl border p-3 ${faction.isLeading ? 'border-yellow-700/60 bg-yellow-950/10' : 'border-gray-700/80 bg-gray-800/60'}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm font-bold text-gray-100">
+          <i className={`fas ${faction.icon} ${faction.accentClass}`} />
+          <span>{faction.label}</span>
+        </div>
+        <span className={`rounded-full border px-2 py-1 text-xs ${faction.level.badgeClass}`}>
+          {faction.level.label}
+        </span>
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-900/80">
+        <div className={`h-full rounded-full ${faction.level.barClass}`} style={{ width: `${width}%` }} />
+      </div>
+      <p className="mt-2 text-xs leading-5 text-gray-400">
+        {faction.score > 0 ? faction.summary : '你暂时还没有明显向这股势力下注。'}
+      </p>
+    </div>
+  );
+}
+
+function getGuidance(gameState, visibleRisks, factionOverview) {
   const lowestResource = Object.entries(gameState.resources).sort((left, right) => left[1] - right[1])[0];
   const highestRisk = visibleRisks[0];
+  const leadingFaction = factionOverview[0]?.score >= 3 ? factionOverview[0] : null;
 
   if (gameState.isGameOver) {
     return {
@@ -80,6 +105,13 @@ function getGuidance(gameState, visibleRisks) {
     };
   }
 
+  if (leadingFaction) {
+    return {
+      title: '开始兑现路线红利',
+      body: `你已经明显在向“${leadingFaction.label}”靠拢。后续尽量连续选择同类手段，才能把这条统治路线做实。`,
+    };
+  }
+
   if (highestRisk) {
     return {
       title: '确认你的治理倾向',
@@ -93,7 +125,7 @@ function getGuidance(gameState, visibleRisks) {
   };
 }
 
-export function DesktopCompanion({ gameState, currentEvent, visibleRisks }) {
+export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factionOverview }) {
   const shortcuts = gameState.isGameOver
     ? [{ keyLabel: 'R', description: '重新开始这一局' }]
     : gameState.phase === 'morning'
@@ -112,7 +144,7 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks }) {
           ];
 
   const latestLog = gameState.logs.at(-1)?.text;
-  const guidance = getGuidance(gameState, visibleRisks);
+  const guidance = getGuidance(gameState, visibleRisks, factionOverview);
 
   return (
     <aside className="hidden xl:flex xl:w-72 xl:flex-col xl:gap-4">
@@ -150,6 +182,17 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks }) {
           <ResourceRow label="压力" value={`${gameState.player.stress}%`} tone="text-red-300" />
           <ResourceRow label="国库" value={gameState.resources.treasury} tone="text-yellow-300" />
           <ResourceRow label="权威" value={gameState.resources.authority} tone="text-purple-300" />
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Faction Drift</div>
+          {factionOverview.some((item) => item.score > 0) ? (
+            factionOverview.map((faction) => <FactionRow key={faction.id} faction={faction} />)
+          ) : (
+            <div className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3 text-sm leading-6 text-gray-300">
+              你还没有形成明显的派系倾向。接下来几次晨间和午后选择，会慢慢把路线推向不同势力。
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
