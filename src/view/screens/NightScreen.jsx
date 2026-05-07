@@ -1,11 +1,13 @@
 const toneClassMap = {
   alert: 'bg-red-900/20 text-gray-200',
+  warning: 'bg-yellow-900/20 text-yellow-100',
   info: 'text-gray-400',
   calm: 'text-gray-300',
 };
 
 const iconClassMap = {
   alert: 'fas fa-exclamation-triangle text-red-500',
+  warning: 'fas fa-bell text-yellow-500',
   info: 'fas fa-hourglass-half text-gray-500',
   calm: 'fas fa-star text-yellow-600',
 };
@@ -34,6 +36,7 @@ function DailyDeltaRow({ label, delta, positiveClass, negativeClass, inverse = f
 
 function getNightTakeaway(summary) {
   const firstAlert = summary.find((item) => item.tone === 'alert');
+  const firstWarning = summary.find((item) => item.tone === 'warning');
   const firstInfo = summary.find((item) => item.tone === 'info');
 
   if (firstAlert?.text.includes('宰相')) {
@@ -73,6 +76,14 @@ function getNightTakeaway(summary) {
       title: '今夜结论：情报为你买到了时间',
       body: '这不是解决问题，只是延缓爆发。明天还得真正处理那条隐患。',
       panelClass: 'border-blue-800/70 bg-blue-950/20 text-blue-100',
+    };
+  }
+
+  if (firstWarning) {
+    return {
+      title: '今夜结论：危机已经被提前预警',
+      body: '今晚还没真正爆炸，但这说明你只剩下一到两天的修补窗口了。',
+      panelClass: 'border-yellow-800/70 bg-yellow-950/20 text-yellow-100',
     };
   }
 

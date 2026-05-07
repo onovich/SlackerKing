@@ -317,6 +317,10 @@ function getMorningEnergyByStress(stress) {
   return 100;
 }
 
+function getNightWarningFlagKey(riskKey) {
+  return `${riskKey}_night_warning_seen`;
+}
+
 const locationActions = {
   visit_queen: (state) => {
     applyStatChanges(state, { energy: -10, authority: 8, favor: 4 });
@@ -346,14 +350,7 @@ const locationActions = {
   },
 };
 
-const nightChecks = {
-  hand_coup: (state) => (getFlag(state, 'hand_power') || 0) >= 4,
-  khan_invasion: (state) => (getFlag(state, 'khan_war') || 0) >= 1,
-  southern_revolt: (state) => typeof getFlag(state, 'southern_mess') === 'number' && getFlag(state, 'southern_mess') >= 3,
-  messy_karma: (state) => (getFlag(state, 'messy_admin') || 0) >= 5,
-};
-
-const nightResults = {
+const nightEffects = {
   hand_coup: (state) => {
     applyStatChanges(state, { authority: -30, stress: 40 });
     setFlag(state, 'hand_power', 0);
@@ -380,6 +377,52 @@ const nightResults = {
     return '【恶果】你之前闭眼盖章的政令引发了巨大的行政混乱，各地怨声载道。';
   },
 };
+
+function resolveNightThreats(state, suppressedRiskKey) {
+  let eventsOccurred = 0;
+  const resolvedRiskKeys = new Set();
+
+  for (const event of nightEvents) {
+    const progress = getFlag(state, event.riskKey) || 0;
+    const warningFlagKey = getNightWarningFlagKey(event.riskKey);
+
+    if (progress <= 0) {
+      deleteFlag(state, warningFlagKey);
+      continue;
+    }
+
+    if (suppressedRiskKey === event.riskKey) {
+      continue;
+    }
+
+    if (progress >= event.triggerThreshold) {
+      const result = (nightEffects[event.effectId] ?? (() => ''))(state);
+      deleteFlag(state, warningFlagKey);
+      resolvedRiskKeys.add(event.riskKey);
+      if (!result) {
+        continue;
+      }
+
+      pushNightSummary(state, 'alert', result);
+      pushLog(state, result);
+      eventsOccurred += 1;
+      continue;
+    }
+
+    if (progress >= event.warningThreshold && !getFlag(state, warningFlagKey)) {
+      pushNightSummary(state, 'warning', event.warningText);
+      pushLog(state, event.warningText);
+      setFlag(state, warningFlagKey, true);
+      continue;
+    }
+
+    if (progress < event.warningThreshold) {
+      deleteFlag(state, warningFlagKey);
+    }
+  }
+
+  return { eventsOccurred, resolvedRiskKeys };
+}
 
 function pickMorningEvent(state) {
   const pool = eventDatabase.filter((event) => eventConditions[event.conditionId](state) && !state.history.includes(event.id));
@@ -597,6 +640,16 @@ export function enterNight(currentState) {
   state.nightSummary = [];
   const suppressedRiskKey = getSuppressedRiskKey(state);
 
+  if (suppressedRiskKey) {
+    const riskMeta = RISK_META[suppressedRiskKey];
+    if (riskMeta) {
+      pushNightSummary(state, 'info', `【情报布控】你提前盯住了“${riskMeta.label}”，这一隐患今夜没有继续恶化。`);
+    }
+    deleteFlag(state, 'spy_watch_target');
+  }
+
+  const { eventsOccurred, resolvedRiskKeys } = resolveNightThreats(state, suppressedRiskKey);
+
   Object.keys(state.flags).forEach((key) => {
     if (typeof state.flags[key] !== 'number') {
       return;
@@ -610,37 +663,16 @@ export function enterNight(currentState) {
       return;
     }
 
+    if (resolvedRiskKeys.has(key)) {
+      return;
+    }
+
     if (suppressedRiskKey && key === suppressedRiskKey) {
       return;
     }
 
     state.flags[key] += 1;
   });
-
-  if (suppressedRiskKey) {
-    const riskMeta = RISK_META[suppressedRiskKey];
-    if (riskMeta) {
-      pushNightSummary(state, 'info', `【情报布控】你提前盯住了“${riskMeta.label}”，这一隐患今夜没有继续恶化。`);
-    }
-    deleteFlag(state, 'spy_watch_target');
-  }
-
-  let eventsOccurred = 0;
-  for (const event of nightEvents) {
-    const check = nightChecks[event.checkId];
-    if (!check?.(state)) {
-      continue;
-    }
-
-    const result = (nightResults[event.resultId] ?? (() => ''))(state);
-    if (!result) {
-      continue;
-    }
-
-    pushNightSummary(state, 'alert', result);
-    pushLog(state, result);
-    eventsOccurred += 1;
-  }
 
   const damage = applyStatChanges(state, { treasury: -3, stress: 8 });
   pushNightSummary(state, 'info', '时间流逝。维持宫廷奢靡开销让国库减少，国王的偏头痛又加重了。');

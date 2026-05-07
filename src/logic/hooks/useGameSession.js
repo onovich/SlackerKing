@@ -17,6 +17,7 @@ export function useGameSession() {
   const [damageFlash, setDamageFlash] = useState(false);
   const [choiceLocked, setChoiceLocked] = useState(false);
   const [locationLocked, setLocationLocked] = useState(false);
+  const gameStateRef = useRef(gameState);
   const timeoutsRef = useRef([]);
 
   const queueTimeout = (callback, delay) => {
@@ -54,6 +55,10 @@ export function useGameSession() {
   };
 
   useEffect(() => {
+    gameStateRef.current = gameState;
+  }, [gameState]);
+
+  useEffect(() => {
     return () => {
       timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
       timeoutsRef.current = [];
@@ -63,17 +68,15 @@ export function useGameSession() {
   const currentEvent = useMemo(() => getCurrentEvent(gameState), [gameState]);
 
   const chooseMorningOption = (choiceId, point) => {
-    if (choiceLocked || gameState.isGameOver) {
+    const currentState = gameStateRef.current;
+    if (choiceLocked || currentState.isGameOver) {
       return;
     }
 
     const energyCost = currentEvent.choices.find((item) => item.id === choiceId)?.energy ?? 0;
 
-    let result;
-    setGameState((current) => {
-      result = resolveMorningChoice(current, choiceId);
-      return result.state;
-    });
+    const result = resolveMorningChoice(currentState, choiceId);
+    setGameState(result.state);
 
     if (!result?.nextStep) {
       return;
@@ -89,15 +92,13 @@ export function useGameSession() {
   };
 
   const chooseLocation = (locationId) => {
-    if (locationLocked || gameState.isGameOver || gameState.player.ap <= 0) {
+    const currentState = gameStateRef.current;
+    if (locationLocked || currentState.isGameOver || currentState.player.ap <= 0) {
       return;
     }
 
-    let result;
-    setGameState((current) => {
-      result = resolveLocationVisit(current, locationId);
-      return result.state;
-    });
+    const result = resolveLocationVisit(currentState, locationId);
+    setGameState(result.state);
 
     if (result?.damage) {
       triggerDamageFlash();
@@ -110,17 +111,19 @@ export function useGameSession() {
   };
 
   const endAfternoon = () => {
-    if (gameState.isGameOver) {
+    const currentState = gameStateRef.current;
+    if (currentState.isGameOver) {
       return;
     }
     setLocationLocked(false);
-    setGameState((current) => transitionState(current, 'night'));
+    setGameState(transitionState(currentState, 'night'));
   };
 
   const nextDay = () => {
+    const currentState = gameStateRef.current;
     setChoiceLocked(false);
     setLocationLocked(false);
-    setGameState((current) => startNextDay(current).state);
+    setGameState(startNextDay(currentState).state);
   };
 
   const restart = () => {

@@ -202,8 +202,36 @@ export const locations = [
 ];
 
 export const nightEvents = [
-  { id: 'n_hand_coup', checkId: 'hand_coup', resultId: 'hand_coup' },
-  { id: 'n_khan_invasion', checkId: 'khan_invasion', resultId: 'khan_invasion' },
-  { id: 'n_southern_revolt', checkId: 'southern_revolt', resultId: 'southern_revolt' },
-  { id: 'n_messy_karma', checkId: 'messy_karma', resultId: 'messy_karma' },
+  {
+    id: 'n_hand_coup',
+    riskKey: 'hand_power',
+    warningThreshold: 3,
+    triggerThreshold: 4,
+    warningText: '【警讯】城防军将领近来频繁出入相府。再放任一夜，宰相很可能就要逼宫了。',
+    effectId: 'hand_coup',
+  },
+  {
+    id: 'n_khan_invasion',
+    riskKey: 'khan_war',
+    warningThreshold: 1,
+    triggerThreshold: 2,
+    warningText: '【警讯】北方边境烽烟四起。大汗的前锋已经在试探防线，明夜可能就会真正南下。',
+    effectId: 'khan_invasion',
+  },
+  {
+    id: 'n_southern_revolt',
+    riskKey: 'southern_mess',
+    warningThreshold: 2,
+    triggerThreshold: 3,
+    warningText: '【警讯】南方总督正在集结兵甲。若再不给回应，独立檄文恐怕就要送到你案头。',
+    effectId: 'southern_revolt',
+  },
+  {
+    id: 'n_messy_karma',
+    riskKey: 'messy_admin',
+    warningThreshold: 4,
+    triggerThreshold: 5,
+    warningText: '【警讯】各地官吏已经开始互相推诿你签下的荒唐政令。再拖下去，行政混乱就会全面爆开。',
+    effectId: 'messy_karma',
+  },
 ];
