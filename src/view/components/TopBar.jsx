@@ -43,7 +43,28 @@ function StatusMeter({ label, icon, valueText, width, barClassName, tooltip, ale
   );
 }
 
-export function TopBar({ gameState }) {
+function RiskBadge({ visibleRisks }) {
+  const highestRisk = visibleRisks.find((risk) => risk.level.key === 'danger')
+    ?? visibleRisks.find((risk) => risk.level.key === 'caution');
+
+  if (!highestRisk) {
+    return (
+      <div className="mt-2 inline-flex items-center gap-2 self-start rounded-full border border-emerald-700/70 bg-emerald-900/20 px-3 py-1 text-xs text-emerald-200">
+        <i className="fas fa-shield-heart" />
+        朝局暂稳
+      </div>
+    );
+  }
+
+  return (
+    <div className={`mt-2 inline-flex items-center gap-2 self-start rounded-full border px-3 py-1 text-xs ${highestRisk.level.badgeClass}`}>
+      <i className={`fas ${highestRisk.icon}`} />
+      {highestRisk.label}：{highestRisk.level.label}
+    </div>
+  );
+}
+
+export function TopBar({ gameState, visibleRisks }) {
   const stressAlert = gameState.player.stress > 80;
 
   return (
@@ -55,6 +76,7 @@ export function TopBar({ gameState }) {
           <span className="ml-2 text-xs text-gray-500">SlackerKing</span>
         </h1>
         <span className="mt-1 text-xs font-mono text-gray-400">第 {gameState.day} 天 - {getPhaseName(gameState.phase)}</span>
+        <RiskBadge visibleRisks={visibleRisks} />
       </div>
 
       <div className="mt-3 flex w-full flex-wrap justify-start gap-x-4 gap-y-2 md:mt-0 md:flex-1 md:justify-center md:space-x-0 xl:w-auto xl:flex-nowrap xl:gap-x-7">

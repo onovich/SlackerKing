@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useGameSession } from './logic/hooks/useGameSession';
-import { isMorningChoiceAvailable } from './logic/engine/gameEngine';
+import { getVisibleRisks, isMorningChoiceAvailable } from './logic/engine/gameEngine';
 import { locations } from './data/gameContent';
 import { TopBar } from './view/components/TopBar';
 import { DesktopCompanion } from './view/components/DesktopCompanion';
@@ -47,6 +47,8 @@ export default function App() {
     ),
     [currentEvent.choices, gameState],
   );
+
+  const visibleRisks = useMemo(() => getVisibleRisks(gameState), [gameState]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -107,10 +109,10 @@ export default function App() {
   return (
     <div className={`app-shell flex h-screen w-screen flex-col selection:bg-yellow-700 selection:text-white ${damageFlash ? 'damage-flash' : ''}`}>
       <div className="flex h-full w-full flex-col xl:mx-auto xl:max-w-[1720px] xl:px-5 xl:py-4">
-        <TopBar gameState={gameState} />
+        <TopBar gameState={gameState} visibleRisks={visibleRisks} />
 
         <main className="flex flex-1 overflow-hidden xl:gap-5 xl:overflow-visible xl:pt-4">
-          <DesktopCompanion gameState={gameState} currentEvent={currentEvent} />
+          <DesktopCompanion gameState={gameState} currentEvent={currentEvent} visibleRisks={visibleRisks} />
 
           <div
             className="relative flex flex-1 items-center justify-center overflow-y-auto p-4 md:p-8 xl:rounded-[28px] xl:border xl:border-gray-700/80 xl:bg-[radial-gradient(circle_at_top,_rgba(74,85,104,0.28),_rgba(18,20,26,0.95)_55%)] xl:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
