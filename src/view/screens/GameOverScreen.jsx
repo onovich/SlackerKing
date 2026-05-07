@@ -26,9 +26,15 @@ function getFigureNames(regimeSummary) {
   return regimeSummary?.figures?.map((figure) => figure.name).join('、') ?? '';
 }
 
-export function GameOverScreen({ gameOver, day, onRestart }) {
+function getRecordEntries(recordMap) {
+  return Object.entries(recordMap ?? {}).sort((left, right) => right[1] - left[1]);
+}
+
+export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
   const retryHint = getRetryHint(gameOver?.cause);
   const figureNames = getFigureNames(gameOver?.regimeSummary);
+  const deathCauseEntries = getRecordEntries(runRecords?.deathCauses).slice(0, 4);
+  const epithetEntries = getRecordEntries(runRecords?.epithets).slice(0, 3);
 
   return (
     <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
@@ -60,6 +66,50 @@ export function GameOverScreen({ gameOver, day, onRestart }) {
         <p className="mt-2 text-sm leading-6 text-gray-300">{gameOver?.regimeSummary?.body}</p>
         {gameOver?.regimeSummary?.epithetDetail ? <p className="mt-2 text-xs leading-5 text-gray-500">{gameOver.regimeSummary.epithetDetail}</p> : null}
         {figureNames ? <p className="mt-3 text-xs leading-5 text-gray-500">这一局最常站到台前的人物：{figureNames}</p> : null}
+      </div>
+
+      <div className="mb-8 rounded-xl border border-gray-700/80 bg-gray-900/50 p-4 text-left">
+        <div className="text-xs uppercase tracking-[0.3em] text-gray-500">王朝档案</div>
+        <div className="mt-3 grid grid-cols-2 gap-4 text-sm text-gray-400">
+          <div>
+            最长在位: <span className="font-bold text-white">{runRecords?.bestDay ?? 0}</span>
+          </div>
+          <div>
+            累计败局: <span className="font-bold text-white">{runRecords?.totalRuns ?? 0}</span>
+          </div>
+          <div>
+            已见死法: <span className="font-bold text-white">{Object.keys(runRecords?.deathCauses ?? {}).length}</span>
+          </div>
+          <div>
+            已获称号: <span className="font-bold text-white">{Object.keys(runRecords?.epithets ?? {}).length}</span>
+          </div>
+        </div>
+
+        {deathCauseEntries.length ? (
+          <div className="mt-4">
+            <div className="text-xs uppercase tracking-[0.25em] text-gray-500">死法记录</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {deathCauseEntries.map(([cause, count]) => (
+                <span key={cause} className="rounded-full border border-red-800/70 bg-red-950/20 px-3 py-1 text-xs text-red-100">
+                  {cause} x{count}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {epithetEntries.length ? (
+          <div className="mt-4">
+            <div className="text-xs uppercase tracking-[0.25em] text-gray-500">已获称号</div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {epithetEntries.map(([epithet, count]) => (
+                <span key={epithet} className="rounded-full border border-yellow-800/70 bg-yellow-950/20 px-3 py-1 text-xs text-yellow-100">
+                  {epithet} x{count}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <button

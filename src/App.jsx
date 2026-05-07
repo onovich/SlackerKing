@@ -25,6 +25,7 @@ function FloatingTexts({ items }) {
 export default function App() {
   const {
     gameState,
+    runRecords,
     currentEvent,
     floatingTexts,
     damageFlash,
@@ -122,7 +123,7 @@ export default function App() {
             id="interaction-area"
           >
             {gameState.isGameOver ? (
-              <GameOverScreen gameOver={gameState.gameOver} day={gameState.day} onRestart={restart} />
+              <GameOverScreen gameOver={gameState.gameOver} day={gameState.day} runRecords={runRecords} onRestart={restart} />
             ) : null}
 
             {!gameState.isGameOver && gameState.phase === 'morning' ? (

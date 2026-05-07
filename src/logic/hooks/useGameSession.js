@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrentEvent, initializeGameState, resolveLocationVisit, resolveMorningChoice, startNextDay, transitionState } from '../engine/gameEngine';
+import { loadRunRecords, recordFinishedRun, saveRunRecords } from '../storage/runRecords';
 
 function createFloatingText(text, point, color) {
   return {
@@ -13,12 +14,14 @@ function createFloatingText(text, point, color) {
 
 export function useGameSession() {
   const [gameState, setGameState] = useState(() => initializeGameState());
+  const [runRecords, setRunRecords] = useState(() => loadRunRecords());
   const [floatingTexts, setFloatingTexts] = useState([]);
   const [damageFlash, setDamageFlash] = useState(false);
   const [choiceLocked, setChoiceLocked] = useState(false);
   const [locationLocked, setLocationLocked] = useState(false);
   const gameStateRef = useRef(gameState);
   const timeoutsRef = useRef([]);
+  const recordedRunKeyRef = useRef(null);
 
   const queueTimeout = (callback, delay) => {
     const timeoutId = window.setTimeout(callback, delay);
@@ -64,6 +67,33 @@ export function useGameSession() {
       timeoutsRef.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    if (!gameState.isGameOver || !gameState.gameOver) {
+      return;
+    }
+
+    const runKey = [
+      gameState.day,
+      gameState.gameOver.cause,
+      gameState.gameOver.regimeSummary?.epithet ?? '',
+    ].join(':');
+
+    if (recordedRunKeyRef.current === runKey) {
+      return;
+    }
+
+    recordedRunKeyRef.current = runKey;
+    setRunRecords((current) => {
+      const next = recordFinishedRun(current, {
+        day: gameState.day,
+        cause: gameState.gameOver?.cause,
+        epithet: gameState.gameOver?.regimeSummary?.epithet,
+      });
+      saveRunRecords(next);
+      return next;
+    });
+  }, [gameState.day, gameState.gameOver, gameState.isGameOver]);
 
   const currentEvent = useMemo(() => getCurrentEvent(gameState), [gameState]);
 
@@ -129,6 +159,7 @@ export function useGameSession() {
   const restart = () => {
     timeoutsRef.current.forEach((timeoutId) => window.clearTimeout(timeoutId));
     timeoutsRef.current = [];
+    recordedRunKeyRef.current = null;
     setFloatingTexts([]);
     setDamageFlash(false);
     setChoiceLocked(false);
@@ -138,6 +169,7 @@ export function useGameSession() {
 
   return {
     gameState,
+    runRecords,
     currentEvent,
     floatingTexts,
     damageFlash,
