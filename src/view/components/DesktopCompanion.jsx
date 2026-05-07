@@ -78,6 +78,19 @@ function FigureRow({ figure }) {
   );
 }
 
+function ArchiveChip({ label, value, toneClass = 'text-gray-100' }) {
+  return (
+    <div className="rounded-lg border border-gray-700/80 bg-gray-900/60 px-3 py-2 text-sm">
+      <div className="text-xs text-gray-500">{label}</div>
+      <div className={`mt-1 font-bold ${toneClass}`}>{value}</div>
+    </div>
+  );
+}
+
+function getTopEntry(recordMap) {
+  return Object.entries(recordMap ?? {}).sort((left, right) => right[1] - left[1])[0] ?? null;
+}
+
 function getGuidance(gameState, visibleRisks, factionOverview) {
   const lowestResource = Object.entries(gameState.resources).sort((left, right) => left[1] - right[1])[0];
   const highestRisk = visibleRisks[0];
@@ -138,7 +151,7 @@ function getGuidance(gameState, visibleRisks, factionOverview) {
   };
 }
 
-export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factionOverview, courtFigures }) {
+export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factionOverview, courtFigures, runRecords }) {
   const shortcuts = gameState.isGameOver
     ? [{ keyLabel: 'R', description: '重新开始这一局' }]
     : gameState.phase === 'morning'
@@ -158,9 +171,11 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
 
   const latestLog = gameState.logs.at(-1)?.text;
   const guidance = getGuidance(gameState, visibleRisks, factionOverview);
+  const topDeathCause = getTopEntry(runRecords?.deathCauses);
+  const topEpithet = getTopEntry(runRecords?.epithets);
 
   return (
-    <aside className="hidden xl:flex xl:w-72 xl:flex-col xl:gap-4">
+    <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:gap-4 xl:w-72">
       <div className="desktop-card sticky top-4 flex flex-col gap-4 rounded-2xl border border-gray-700/80 bg-gray-900/75 p-4 shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-sm">
         <div>
           <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Desktop Mode</div>
@@ -195,6 +210,30 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
           <ResourceRow label="压力" value={`${gameState.player.stress}%`} tone="text-red-300" />
           <ResourceRow label="国库" value={gameState.resources.treasury} tone="text-yellow-300" />
           <ResourceRow label="权威" value={gameState.resources.authority} tone="text-purple-300" />
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Royal Archive</div>
+          <div className="grid grid-cols-2 gap-2">
+            <ArchiveChip label="最长在位" value={`${runRecords?.bestDay ?? 0} 天`} toneClass="text-white" />
+            <ArchiveChip label="累计败局" value={runRecords?.totalRuns ?? 0} toneClass="text-white" />
+            <ArchiveChip label="已见死法" value={Object.keys(runRecords?.deathCauses ?? {}).length} toneClass="text-red-200" />
+            <ArchiveChip label="已获称号" value={Object.keys(runRecords?.epithets ?? {}).length} toneClass="text-yellow-200" />
+          </div>
+          {topDeathCause ? (
+            <div className="rounded-xl border border-red-800/60 bg-red-950/20 p-3 text-xs leading-5 text-red-100">
+              最常见死法：{topDeathCause[0]} x{topDeathCause[1]}
+            </div>
+          ) : null}
+          {topEpithet ? (
+            <div className="rounded-xl border border-yellow-800/60 bg-yellow-950/20 p-3 text-xs leading-5 text-yellow-100">
+              最常解锁称号：{topEpithet[0]} x{topEpithet[1]}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3 text-sm leading-6 text-gray-300">
+              败局记录会长期保存在本地。多试几条路线，这里会慢慢长成你的王朝档案。
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
