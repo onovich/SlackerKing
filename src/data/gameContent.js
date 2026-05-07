@@ -152,6 +152,46 @@ export const RISK_META = {
     sourceText: '草率批文的后遗症正在全国蔓延。',
     mitigationText: '减少继续乱批的频率，并为夜间恶果预留缓冲资源。',
   },
+  nobles_excess: {
+    label: '宗室开支失控',
+    icon: 'fa-landmark-dome',
+    levels: {
+      caution: 2,
+      danger: 3,
+    },
+    sourceText: '你对宗庙、封赏和体面的持续投入正在养大宗室胃口。',
+    mitigationText: '减少继续给旧贵族加码，或用情报暗室暂缓今夜恶化。',
+  },
+  military_overreach: {
+    label: '禁卫渐失其主',
+    icon: 'fa-chess-rook',
+    levels: {
+      caution: 2,
+      danger: 3,
+    },
+    sourceText: '你让军方一步步把手伸进宫门，禁卫忠诚正在偏移。',
+    mitigationText: '避免继续纵容军方换防，并用更平衡的路线重新分权。',
+  },
+  merchants_corruption: {
+    label: '商路账目黑箱',
+    icon: 'fa-file-invoice-dollar',
+    levels: {
+      caution: 2,
+      danger: 3,
+    },
+    sourceText: '你对商会的让利和遮掩正在把朝廷账本变成黑箱。',
+    mitigationText: '减少继续纵容商会，优先用强硬或审计手段切断后患。',
+  },
+  foreign_infiltration: {
+    label: '边贸外使渗透',
+    icon: 'fa-user-shield',
+    levels: {
+      caution: 2,
+      danger: 3,
+    },
+    sourceText: '你让外部势力越过了边贸礼节，开始摸到王朝的内部脉络。',
+    mitigationText: '停止继续退让，或用情报暗室拖住今晚的渗透。',
+  },
 };
 
 export const INITIAL_DAILY_CHANGES = {
@@ -527,5 +567,37 @@ export const nightEvents = [
     triggerThreshold: 5,
     warningText: '【警讯】各地官吏已经开始互相推诿你签下的荒唐政令。再拖下去，行政混乱就会全面爆开。',
     effectId: 'messy_karma',
+  },
+  {
+    id: 'n_nobles_excess',
+    riskKey: 'nobles_excess',
+    warningThreshold: 2,
+    triggerThreshold: 3,
+    warningText: '【警讯】宗室已经默认下一轮修缮与封赏还会继续加码。若今夜再没人踩刹车，明早他们就会直接来掏你的库房。',
+    effectId: 'nobles_excess',
+  },
+  {
+    id: 'n_military_overreach',
+    riskKey: 'military_overreach',
+    warningThreshold: 2,
+    triggerThreshold: 3,
+    warningText: '【警讯】几处宫门的禁卫已经开始先看韩烈脸色。若再放任一夜，宫里会多出一套不受你控制的口令。',
+    effectId: 'military_overreach',
+  },
+  {
+    id: 'n_merchants_corruption',
+    riskKey: 'merchants_corruption',
+    warningThreshold: 2,
+    triggerThreshold: 3,
+    warningText: '【警讯】商会的人正在趁火案上下其手，新的黑账随时会在你名下爆出来。再拖一夜，明早你就得替他们背锅。',
+    effectId: 'merchants_corruption',
+  },
+  {
+    id: 'n_foreign_infiltration',
+    riskKey: 'foreign_infiltration',
+    warningThreshold: 2,
+    triggerThreshold: 3,
+    warningText: '【警讯】汗国监使已经开始接触边关文吏和商队账房。若再让他们多待一夜，边贸情报就不再只属于你。',
+    effectId: 'foreign_infiltration',
   },
 ];

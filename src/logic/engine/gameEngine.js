@@ -302,11 +302,13 @@ const choiceEffects = {
   nobles_restore_full: (state) => {
     applyStatChanges(state, { treasury: -12, authority: 12, favor: 5, stress: 4 });
     setFlag(state, 'old_nobles_cd', 6);
+    setFlag(state, 'nobles_excess', (getFlag(state, 'nobles_excess') || 0) + 2);
     pushLog(state, '宗庙修缮按古制铺开。宗室与礼官都重新挺直了腰板，只是户部尚书看你的眼神像在看一个纵火犯。');
   },
   nobles_restore_phased: (state) => {
     applyStatChanges(state, { treasury: -6, authority: 6, favor: 3, stress: 2 });
     setFlag(state, 'old_nobles_cd', 5);
+    setFlag(state, 'nobles_excess', Math.max(1, getFlag(state, 'nobles_excess') || 0));
     pushLog(state, '你答应分年修缮，先把祖庙最显眼的门面撑起来。宗室虽然嫌你抠门，但也承认这至少像个交代。');
   },
   nobles_restore_delay: (state) => {
@@ -359,11 +361,13 @@ const choiceEffects = {
   military_commission_trust: (state) => {
     applyStatChanges(state, { military: 10, authority: -6, stress: -4 });
     setFlag(state, 'military_cd', 6);
+    setFlag(state, 'military_overreach', (getFlag(state, 'military_overreach') || 0) + 2);
     pushLog(state, '韩烈的人顺利接手了几处宫门。军心明显更稳了，但你也第一次清楚感觉到，宫城里站岗的人未必只听你一个人的话。');
   },
   military_commission_split: (state) => {
     applyStatChanges(state, { military: 5, authority: 3, stress: 2 });
     setFlag(state, 'military_cd', 5);
+    setFlag(state, 'military_overreach', Math.max(1, getFlag(state, 'military_overreach') || 0));
     pushLog(state, '你在换防名单里硬塞进了自己的人。韩烈不算满意，但至少没法说你完全不给军方面子。');
   },
   military_commission_reject: (state) => {
@@ -414,11 +418,13 @@ const choiceEffects = {
   merchants_accounts_cover: (state) => {
     applyStatChanges(state, { treasury: 14, authority: -8, favor: -4, stress: -2 });
     setFlag(state, 'merchants_cd', 6);
+    setFlag(state, 'merchants_corruption', (getFlag(state, 'merchants_corruption') || 0) + 2);
     pushLog(state, '你把火案压成了“仓库失修”的普通事故，银路照常运转。沈万金自然心领神会，只是朝廷脸面又被账房先生按在地上擦了一遍。');
   },
   merchants_accounts_probe: (state) => {
     applyStatChanges(state, { treasury: 7, authority: 5, stress: 3 });
     setFlag(state, 'merchants_cd', 5);
+    setFlag(state, 'merchants_corruption', Math.max(1, getFlag(state, 'merchants_corruption') || 0));
     pushLog(state, '你命人暗查火案，既没立刻翻脸，也没装作看不见。沈万金开始频繁递话，说明这把火多半确实烧到了他不想见人的地方。');
   },
   merchants_accounts_seize: (state) => {
@@ -479,12 +485,14 @@ const choiceEffects = {
     deleteFlag(state, 'envoy_active');
     setFlag(state, 'envoy_cd', 10);
     setFlag(state, 'foreign_cd', 6);
+    setFlag(state, 'foreign_infiltration', (getFlag(state, 'foreign_infiltration') || 0) + 2);
     pushLog(state, '你允许汗国监使进驻边贸口岸，边境果然安静了许多。只是消息传回京城后，连最会装糊涂的大臣都知道你又退了一步。');
   },
   foreign_inspection_limit: (state) => {
     applyStatChanges(state, { treasury: 4, authority: -3, stress: 2 });
     setFlag(state, 'envoy_active', Math.max(1, getFlag(state, 'envoy_active') || 0));
     setFlag(state, 'foreign_cd', 5);
+    setFlag(state, 'foreign_infiltration', Math.max(1, getFlag(state, 'foreign_infiltration') || 0));
     pushLog(state, '你给了监使一顶好看的帽子，却没给他真正的钥匙。阿史那暂时接受了体面安排，但显然还会回来继续抬价。');
   },
   foreign_inspection_expel: (state) => {
@@ -563,6 +571,26 @@ function resolveRumors(state) {
     return;
   }
 
+  if (targetKey === 'nobles_excess') {
+    pushLog(state, '情报总管密报：宗室今晚在私下串联加码修缮预算。臣已截下几封请托信，今夜他们暂时掏不到你的库房。');
+    return;
+  }
+
+  if (targetKey === 'military_overreach') {
+    pushLog(state, '暗探回报：几处宫门今晚准备换新口令。臣已提前调包值夜名册，今夜禁卫不会继续往韩烈那边倒。');
+    return;
+  }
+
+  if (targetKey === 'merchants_corruption') {
+    pushLog(state, '情报总管密报：商会账房正在连夜补假账。臣已让人偷走关键底册，今夜这口黑锅暂时扣不到你头上。');
+    return;
+  }
+
+  if (targetKey === 'foreign_infiltration') {
+    pushLog(state, '暗探回报：汗国监使今晚要私会边关文吏。臣已提前放出假账册和假名单，今夜他们摸不到真正的脉络。');
+    return;
+  }
+
   pushLog(state, '情报总管回报：几道荒唐诏令已被地方官吏层层曲解。臣已暗中截下一批公文，今夜恶果会被延后。');
 }
 
@@ -586,6 +614,10 @@ function pickSpyTarget(state) {
   candidates.push({ key: 'hand_power', progress: getFlag(state, 'hand_power') || 0 });
   candidates.push({ key: 'southern_mess', progress: getFlag(state, 'southern_mess') || 0 });
   candidates.push({ key: 'messy_admin', progress: getFlag(state, 'messy_admin') || 0 });
+  candidates.push({ key: 'nobles_excess', progress: getFlag(state, 'nobles_excess') || 0 });
+  candidates.push({ key: 'military_overreach', progress: getFlag(state, 'military_overreach') || 0 });
+  candidates.push({ key: 'merchants_corruption', progress: getFlag(state, 'merchants_corruption') || 0 });
+  candidates.push({ key: 'foreign_infiltration', progress: getFlag(state, 'foreign_infiltration') || 0 });
 
   return candidates
     .filter((item) => item.progress > 0)
@@ -657,6 +689,26 @@ const nightEffects = {
     applyStatChanges(state, { authority: -10, favor: -10, treasury: -10 });
     setFlag(state, 'messy_admin', 0);
     return '【恶果】你之前闭眼盖章的政令引发了巨大的行政混乱，各地怨声载道。';
+  },
+  nobles_excess: (state) => {
+    applyStatChanges(state, { treasury: -16, authority: -5, favor: -4, stress: 10 });
+    deleteFlag(state, 'nobles_excess');
+    return '【夜耗】宗室趁夜追加修缮、祭礼和封赏开支，户部被迫连夜拨款。你保住了一点体面，却让国库和耐心一起漏了个大洞。';
+  },
+  military_overreach: (state) => {
+    applyStatChanges(state, { authority: -18, military: 4, stress: 12 });
+    deleteFlag(state, 'military_overreach');
+    return '【夺权】禁卫夜里换了新口令，几处宫门开始先认将令后认王命。军方替你稳住了表面秩序，也顺手拿走了更多宫城控制权。';
+  },
+  merchants_corruption: (state) => {
+    applyStatChanges(state, { treasury: -12, authority: -12, favor: -8, stress: 8 });
+    deleteFlag(state, 'merchants_corruption');
+    return '【黑账】漕运和盐引的假账在夜里漏了风声。商会把责任巧妙挂回了朝廷名下，银子少了一截，骂名却完整落在了你头上。';
+  },
+  foreign_infiltration: (state) => {
+    applyStatChanges(state, { authority: -12, military: -8, treasury: -6, stress: 10 });
+    deleteFlag(state, 'foreign_infiltration');
+    return '【渗透】汗国监使连夜买通了边关文吏和商队账房。你换来的和平又薄了一层，边贸底细也被外人摸走了一截。';
   },
 };
 
@@ -839,6 +891,10 @@ export function getVisibleRisks(state) {
   pushRisk('hand_power', getFlag(state, 'hand_power') || 0);
   pushRisk('southern_mess', getFlag(state, 'southern_mess') || 0);
   pushRisk('messy_admin', getFlag(state, 'messy_admin') || 0);
+  pushRisk('nobles_excess', getFlag(state, 'nobles_excess') || 0);
+  pushRisk('military_overreach', getFlag(state, 'military_overreach') || 0);
+  pushRisk('merchants_corruption', getFlag(state, 'merchants_corruption') || 0);
+  pushRisk('foreign_infiltration', getFlag(state, 'foreign_infiltration') || 0);
 
   const envoyProgress = Math.max(getFlag(state, 'envoy_active') || 0, getFlag(state, 'khan_war') || 0);
   if ((getFlag(state, 'khan_war') || 0) > 0) {
