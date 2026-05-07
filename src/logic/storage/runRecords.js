@@ -156,6 +156,10 @@ export function recordFinishedRun(records, runSummary) {
       cause: runSummary.cause ?? '',
       epithet: runSummary.epithet ?? '',
       title: runSummary.title ?? '',
+      routeTitle: runSummary.routeTitle ?? '',
+      routeBody: runSummary.routeBody ?? '',
+      primaryFaction: runSummary.primaryFaction ?? '',
+      figures: Array.isArray(runSummary.figures) ? runSummary.figures.slice(0, 3) : [],
     },
     ...(records?.recentRuns ?? []),
   ].slice(0, 6);

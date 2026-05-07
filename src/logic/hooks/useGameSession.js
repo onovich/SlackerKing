@@ -106,6 +106,10 @@ export function useGameSession() {
         cause: gameState.gameOver?.cause,
         epithet: gameState.gameOver?.regimeSummary?.epithet,
         title: gameState.gameOver?.title,
+        routeTitle: gameState.gameOver?.regimeSummary?.title,
+        routeBody: gameState.gameOver?.regimeSummary?.body,
+        primaryFaction: gameState.gameOver?.regimeSummary?.primaryFaction?.label,
+        figures: gameState.gameOver?.regimeSummary?.figures?.map((figure) => figure.name),
       });
       saveRunRecords(next);
       return next;

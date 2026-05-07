@@ -120,6 +120,22 @@ function getRecentRuns(runRecords) {
   return Array.isArray(runRecords?.recentRuns) ? runRecords.recentRuns.slice(0, 3) : [];
 }
 
+function getRecentRunSubline(run) {
+  if (run.primaryFaction && Array.isArray(run.figures) && run.figures.length > 0) {
+    return `${run.primaryFaction} · ${run.figures.join('、')}`;
+  }
+
+  if (run.primaryFaction) {
+    return run.primaryFaction;
+  }
+
+  if (Array.isArray(run.figures) && run.figures.length > 0) {
+    return run.figures.join('、');
+  }
+
+  return '';
+}
+
 function getGuidance(gameState, visibleRisks, factionOverview) {
   const lowestResource = Object.entries(gameState.resources).sort((left, right) => left[1] - right[1])[0];
   const highestRisk = visibleRisks[0];
@@ -274,6 +290,8 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
                 <div key={`${run.day}-${run.cause}-${index}`} className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3 text-xs leading-5 text-gray-300">
                   <div className="font-semibold text-gray-100">第 {run.day} 天 · {run.cause || '未知败局'}</div>
                   <div className="mt-1 text-gray-500">{run.epithet || run.title || '无称号记录'}</div>
+                  {run.routeTitle ? <div className="mt-1 text-gray-300">{run.routeTitle}</div> : null}
+                  {getRecentRunSubline(run) ? <div className="mt-1 text-gray-500">{getRecentRunSubline(run)}</div> : null}
                 </div>
               ))}
             </div>

@@ -36,6 +36,22 @@ function getRecentRuns(runRecords) {
   return Array.isArray(runRecords?.recentRuns) ? runRecords.recentRuns.slice(0, 4) : [];
 }
 
+function getRecentRunSubline(run) {
+  if (run.primaryFaction && Array.isArray(run.figures) && run.figures.length > 0) {
+    return `${run.primaryFaction} · ${run.figures.join('、')}`;
+  }
+
+  if (run.primaryFaction) {
+    return run.primaryFaction;
+  }
+
+  if (Array.isArray(run.figures) && run.figures.length > 0) {
+    return run.figures.join('、');
+  }
+
+  return '';
+}
+
 function CodexBadge({ entry, accentClass, lockedLabel }) {
   return (
     <div className={`rounded-lg border px-3 py-2 text-xs leading-5 ${entry.unlocked ? accentClass : 'border-gray-700/70 bg-gray-950/30 text-gray-500'}`}>
@@ -152,6 +168,8 @@ export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
                 <div key={`${run.day}-${run.cause}-${index}`} className="rounded-lg border border-gray-700/70 bg-gray-950/40 px-3 py-2 text-xs text-gray-300">
                   <div className="font-semibold text-gray-100">第 {run.day} 天驾崩 · {run.cause || '未知败局'}</div>
                   <div className="mt-1 text-gray-500">{run.epithet || run.title || '无称号记录'}</div>
+                  {run.routeTitle ? <div className="mt-1 text-gray-300">{run.routeTitle}</div> : null}
+                  {getRecentRunSubline(run) ? <div className="mt-1 text-gray-500">{getRecentRunSubline(run)}</div> : null}
                 </div>
               ))}
             </div>
