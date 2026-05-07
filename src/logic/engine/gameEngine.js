@@ -1065,17 +1065,72 @@ function getFactionRouteSummary(faction) {
   };
 }
 
+function getRegimeEpithet(state, primaryFaction) {
+  let prefix = '摇摇欲坠的';
+  let detail = '你暂时还能坐在王座上，但整套统治机器已经开始带着明显代价运转。';
+
+  if (state.player.stress >= 85) {
+    prefix = '焦头烂额的';
+    detail = '你的统治几乎全靠硬撑。哪怕路线已经成形，王座底下也全是你来不及扑灭的火。';
+  } else if (state.resources.authority >= 70) {
+    prefix = '威仪犹存的';
+    detail = '无论你走哪条线，至少现在朝堂上还愿意把你当成真正的王来看待。';
+  } else if (state.resources.treasury <= 25) {
+    prefix = '拆东补西的';
+    detail = '路线已经有了，可财政窟窿同样显眼。你更像是在拿明天替今天续命。';
+  } else if (state.resources.favor >= 70) {
+    prefix = '尚得人心的';
+    detail = '至少到这一刻，百姓还没彻底厌弃你，这让你的路线多了几分缓冲余地。';
+  }
+
+  if (!primaryFaction) {
+    return {
+      label: `${prefix}救火国王`,
+      detail,
+    };
+  }
+
+  if (primaryFaction.id === 'old_nobles') {
+    return {
+      label: `${prefix}礼制守成人`,
+      detail,
+    };
+  }
+
+  if (primaryFaction.id === 'military') {
+    return {
+      label: `${prefix}军镇共主`,
+      detail,
+    };
+  }
+
+  if (primaryFaction.id === 'merchants') {
+    return {
+      label: `${prefix}账簿之王`,
+      detail,
+    };
+  }
+
+  return {
+    label: `${prefix}边贸调停者`,
+    detail,
+  };
+}
+
 export function getRegimeSummary(state, event = getCurrentEvent(state)) {
   const factionOverview = getFactionOverview(state);
   const primaryFaction = factionOverview[0]?.score > 0 ? factionOverview[0] : null;
   const figures = getCourtFigures(state, event).slice(0, 3);
   const routeSummary = getFactionRouteSummary(primaryFaction);
+  const epithet = getRegimeEpithet(state, primaryFaction);
 
   return {
     primaryFaction,
     figures,
     title: routeSummary.title,
     body: routeSummary.body,
+    epithet: epithet.label,
+    epithetDetail: epithet.detail,
   };
 }
 

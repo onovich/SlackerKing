@@ -55,8 +55,10 @@ export function GameOverScreen({ gameOver, day, onRestart }) {
 
       <div className="mb-8 rounded-xl border border-gray-700/80 bg-gray-900/50 p-4 text-left">
         <div className="text-xs uppercase tracking-[0.3em] text-gray-500">统治路线</div>
+        {gameOver?.regimeSummary?.epithet ? <div className="mt-3 text-sm font-semibold text-gray-300">统治称号：{gameOver.regimeSummary.epithet}</div> : null}
         <div className="mt-3 text-base font-bold text-gray-100">{gameOver?.regimeSummary?.title}</div>
         <p className="mt-2 text-sm leading-6 text-gray-300">{gameOver?.regimeSummary?.body}</p>
+        {gameOver?.regimeSummary?.epithetDetail ? <p className="mt-2 text-xs leading-5 text-gray-500">{gameOver.regimeSummary.epithetDetail}</p> : null}
         {figureNames ? <p className="mt-3 text-xs leading-5 text-gray-500">这一局最常站到台前的人物：{figureNames}</p> : null}
       </div>
 

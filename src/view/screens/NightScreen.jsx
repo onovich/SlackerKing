@@ -139,8 +139,10 @@ export function NightScreen({ summary, dailyChanges, regimeSummary, onNextDay })
 
       <div className={`mb-6 rounded-xl border p-4 ${regimeTone}`}>
         <div className="text-xs uppercase tracking-[0.3em] opacity-70">Court Wind</div>
+        {regimeSummary?.epithet ? <div className="mt-2 text-sm font-semibold opacity-80">统治称号：{regimeSummary.epithet}</div> : null}
         <div className="mt-2 text-lg font-bold">{regimeSummary?.title}</div>
         <p className="mt-2 text-sm leading-6 opacity-90">{regimeSummary?.body}</p>
+        {regimeSummary?.epithetDetail ? <p className="mt-2 text-xs leading-5 opacity-70">{regimeSummary.epithetDetail}</p> : null}
         {figureNames ? <p className="mt-3 text-xs leading-5 opacity-70">今夜最值得盯住的人物：{figureNames}</p> : null}
       </div>
 
