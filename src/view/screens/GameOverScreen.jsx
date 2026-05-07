@@ -1,4 +1,4 @@
-import { getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
+import { getArchiveMilestones, getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
 
 function getRetryHint(cause) {
   if (cause === '中风崩殂') {
@@ -45,6 +45,20 @@ function CodexBadge({ entry, accentClass, lockedLabel }) {
   );
 }
 
+function MilestoneBadge({ entry }) {
+  return (
+    <div className={`rounded-lg border px-3 py-2 text-xs leading-5 ${entry.unlocked ? 'border-emerald-700/70 bg-emerald-950/20 text-emerald-100' : 'border-gray-700/70 bg-gray-950/30 text-gray-400'}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="font-semibold">{entry.title}</div>
+        <div className={`rounded-full border px-2 py-0.5 text-[10px] ${entry.unlocked ? 'border-emerald-700/70 text-emerald-200' : 'border-gray-700 text-gray-500'}`}>
+          {entry.unlocked ? '已达成' : entry.progressLabel}
+        </div>
+      </div>
+      <div className="mt-1">{entry.description}</div>
+    </div>
+  );
+}
+
 export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
   const retryHint = getRetryHint(gameOver?.cause);
   const figureNames = getFigureNames(gameOver?.regimeSummary);
@@ -53,6 +67,7 @@ export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
   const recentRuns = getRecentRuns(runRecords);
   const deathCauseCodex = getDeathCauseCodex(runRecords);
   const epithetCodex = getEpithetArchetypeCodex(runRecords);
+  const archiveMilestones = getArchiveMilestones(runRecords);
 
   return (
     <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
@@ -142,6 +157,15 @@ export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
             </div>
           </div>
         ) : null}
+
+        <div className="mt-4">
+          <div className="text-xs uppercase tracking-[0.25em] text-gray-500">王朝里程碑</div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {archiveMilestones.map((entry) => (
+              <MilestoneBadge key={entry.id} entry={entry} />
+            ))}
+          </div>
+        </div>
 
         <div className="mt-4">
           <div className="text-xs uppercase tracking-[0.25em] text-gray-500">死法图鉴</div>

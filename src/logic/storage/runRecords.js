@@ -56,6 +56,57 @@ export const EPITHET_ARCHETYPE_CATALOG = [
   },
 ];
 
+export const ARCHIVE_MILESTONE_CATALOG = [
+  {
+    id: 'first_fall',
+    title: '第一滴血',
+    description: '第一次把一局真正打完，哪怕结局很难看。',
+    target: 1,
+    getProgress: (records) => records?.totalRuns ?? 0,
+    formatProgress: (value, target) => `${Math.min(value, target)}/${target} 次败局`,
+  },
+  {
+    id: 'seven_days',
+    title: '七日王朝',
+    description: '至少活到第 7 天，证明你已经能稳住开局的连环失控。',
+    target: 7,
+    getProgress: (records) => records?.bestDay ?? 0,
+    formatProgress: (value, target) => `${Math.min(value, target)}/${target} 天`,
+  },
+  {
+    id: 'twelve_days',
+    title: '老狐狸',
+    description: '至少活到第 12 天，说明你开始能把路线和资源一起拧住。',
+    target: 12,
+    getProgress: (records) => records?.bestDay ?? 0,
+    formatProgress: (value, target) => `${Math.min(value, target)}/${target} 天`,
+  },
+  {
+    id: 'chronicler',
+    title: '史官熟客',
+    description: '累计经历 5 次败局，档案开始真正具备可读性。',
+    target: 5,
+    getProgress: (records) => records?.totalRuns ?? 0,
+    formatProgress: (value, target) => `${Math.min(value, target)}/${target} 次败局`,
+  },
+  {
+    id: 'death_collector',
+    title: '死法见闻录',
+    description: '见过至少 3 种不同死法，开始真正理解这顶王冠的风险谱系。',
+    target: 3,
+    getProgress: (records) => getDeathCauseCodex(records).filter((entry) => entry.unlocked).length,
+    formatProgress: (value, target) => `${Math.min(value, target)}/${target} 种死法`,
+  },
+  {
+    id: 'many_faces',
+    title: '百面之君',
+    description: '打出至少 3 种统治原型，证明你不只会一条活法。',
+    target: 3,
+    getProgress: (records) => getEpithetArchetypeCodex(records).filter((entry) => entry.unlocked).length,
+    formatProgress: (value, target) => `${Math.min(value, target)}/${target} 种原型`,
+  },
+];
+
 export function createDefaultRunRecords() {
   return {
     bestDay: 0,
@@ -149,6 +200,21 @@ export function getEpithetArchetypeCodex(records) {
       ...entry,
       unlocked: count > 0,
       count,
+    };
+  });
+}
+
+export function getArchiveMilestones(records) {
+  return ARCHIVE_MILESTONE_CATALOG.map((entry) => {
+    const progress = entry.getProgress(records);
+    return {
+      id: entry.id,
+      title: entry.title,
+      description: entry.description,
+      unlocked: progress >= entry.target,
+      progress,
+      target: entry.target,
+      progressLabel: entry.formatProgress(progress, entry.target),
     };
   });
 }

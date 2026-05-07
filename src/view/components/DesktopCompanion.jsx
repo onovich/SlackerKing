@@ -1,4 +1,4 @@
-import { getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
+import { getArchiveMilestones, getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
 
 function ShortcutRow({ keyLabel, description }) {
   return (
@@ -98,6 +98,20 @@ function CodexEntry({ entry, accentClass, lockedLabel }) {
   );
 }
 
+function MilestoneEntry({ entry }) {
+  return (
+    <div className={`rounded-lg border px-3 py-2 text-xs leading-5 ${entry.unlocked ? 'border-emerald-700/70 bg-emerald-950/20 text-emerald-100' : 'border-gray-700/70 bg-gray-900/40 text-gray-400'}`}>
+      <div className="flex items-center justify-between gap-2">
+        <div className="font-semibold">{entry.title}</div>
+        <div className={`rounded-full border px-2 py-0.5 text-[10px] ${entry.unlocked ? 'border-emerald-700/70 text-emerald-200' : 'border-gray-700 text-gray-500'}`}>
+          {entry.unlocked ? '已达成' : entry.progressLabel}
+        </div>
+      </div>
+      <div className="mt-1 opacity-80">{entry.description}</div>
+    </div>
+  );
+}
+
 function getTopEntry(recordMap) {
   return Object.entries(recordMap ?? {}).sort((left, right) => right[1] - left[1])[0] ?? null;
 }
@@ -191,6 +205,7 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
   const recentRuns = getRecentRuns(runRecords);
   const deathCauseCodex = getDeathCauseCodex(runRecords);
   const epithetCodex = getEpithetArchetypeCodex(runRecords);
+  const archiveMilestones = getArchiveMilestones(runRecords);
 
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:gap-4 xl:w-72">
@@ -263,6 +278,14 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
               ))}
             </div>
           ) : null}
+          <div className="space-y-2">
+            <div className="text-xs uppercase tracking-[0.25em] text-gray-500">王朝里程碑</div>
+            <div className="grid gap-2">
+              {archiveMilestones.map((entry) => (
+                <MilestoneEntry key={entry.id} entry={entry} />
+              ))}
+            </div>
+          </div>
           <div className="space-y-2">
             <div className="text-xs uppercase tracking-[0.25em] text-gray-500">死法图鉴</div>
             <div className="grid gap-2">
