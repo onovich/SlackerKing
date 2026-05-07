@@ -167,10 +167,13 @@ const eventConditions = {
   envoy_stay_due: (state) => (getFlag(state, 'envoy_active') ?? 0) >= 3,
   old_nobles_rite_ready: (state) => state.day > 3 && (state.factions.old_nobles || 0) >= 3 && !getFlag(state, 'old_nobles_cd'),
   old_nobles_patronage_ready: (state) => Boolean(getFlag(state, 'old_nobles_aftermath')) && !getFlag(state, 'old_nobles_aftermath_seen'),
+  old_nobles_restoration_ready: (state) => state.day > 5 && Boolean(getFlag(state, 'old_nobles_aftermath_seen')) && state.history.includes('e_nobles_patronage') && (state.factions.old_nobles || 0) >= 5 && !getFlag(state, 'old_nobles_cd'),
   military_petition_ready: (state) => state.day > 3 && (state.factions.military || 0) >= 3 && !getFlag(state, 'military_cd'),
   military_honor_ready: (state) => Boolean(getFlag(state, 'military_aftermath')) && !getFlag(state, 'military_aftermath_seen'),
+  military_commission_ready: (state) => state.day > 5 && Boolean(getFlag(state, 'military_aftermath_seen')) && state.history.includes('e_military_honor') && (state.factions.military || 0) >= 5 && !getFlag(state, 'military_cd'),
   merchants_compact_ready: (state) => state.day > 3 && (state.factions.merchants || 0) >= 3 && !getFlag(state, 'merchants_cd'),
   merchants_extension_ready: (state) => Boolean(getFlag(state, 'merchants_aftermath')) && !getFlag(state, 'merchants_aftermath_seen'),
+  merchants_accounts_ready: (state) => state.day > 5 && Boolean(getFlag(state, 'merchants_aftermath_seen')) && state.history.includes('e_merchants_extension') && (state.factions.merchants || 0) >= 5 && !getFlag(state, 'merchants_cd'),
   foreign_trade_ready: (state) => state.day > 3 && (state.factions.foreign || 0) >= 3 && !getFlag(state, 'foreign_cd'),
   foreign_marriage_ready: (state) => Boolean(getFlag(state, 'foreign_aftermath')) && !getFlag(state, 'foreign_aftermath_seen'),
   magic_beast_ready: (state) => state.day > 5 && !getFlag(state, 'beast_seen'),
@@ -295,6 +298,22 @@ const choiceEffects = {
     setFlag(state, 'hand_power', (getFlag(state, 'hand_power') || 0) + 1);
     pushLog(state, '你把名单推了回去。王后没再说什么，但宗室席间很快又开始传出“陛下只会摆样子”的冷笑。');
   },
+  nobles_restore_full: (state) => {
+    applyStatChanges(state, { treasury: -12, authority: 12, favor: 5, stress: 4 });
+    setFlag(state, 'old_nobles_cd', 6);
+    pushLog(state, '宗庙修缮按古制铺开。宗室与礼官都重新挺直了腰板，只是户部尚书看你的眼神像在看一个纵火犯。');
+  },
+  nobles_restore_phased: (state) => {
+    applyStatChanges(state, { treasury: -6, authority: 6, favor: 3, stress: 2 });
+    setFlag(state, 'old_nobles_cd', 5);
+    pushLog(state, '你答应分年修缮，先把祖庙最显眼的门面撑起来。宗室虽然嫌你抠门，但也承认这至少像个交代。');
+  },
+  nobles_restore_delay: (state) => {
+    applyStatChanges(state, { authority: -7, favor: -3, stress: -2 });
+    setFlag(state, 'old_nobles_cd', 4);
+    setFlag(state, 'hand_power', (getFlag(state, 'hand_power') || 0) + 1);
+    pushLog(state, '你决定先拿帷幔和香火把宗庙糊弄过去。裴文璟没再多说，但朝中已经有人在私下议论你连祖宗都敢怠慢。');
+  },
   military_full_fund: (state) => {
     applyStatChanges(state, { treasury: -14, military: 15, authority: 4, stress: 6 });
     setFlag(state, 'military_cd', 6);
@@ -336,6 +355,22 @@ const choiceEffects = {
     setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
     pushLog(state, '你把韩烈连人带名单一起打发了回去。军中暂时没闹，但失望正在一点点积起来。');
   },
+  military_commission_trust: (state) => {
+    applyStatChanges(state, { military: 10, authority: -6, stress: -4 });
+    setFlag(state, 'military_cd', 6);
+    pushLog(state, '韩烈的人顺利接手了几处宫门。军心明显更稳了，但你也第一次清楚感觉到，宫城里站岗的人未必只听你一个人的话。');
+  },
+  military_commission_split: (state) => {
+    applyStatChanges(state, { military: 5, authority: 3, stress: 2 });
+    setFlag(state, 'military_cd', 5);
+    pushLog(state, '你在换防名单里硬塞进了自己的人。韩烈不算满意，但至少没法说你完全不给军方面子。');
+  },
+  military_commission_reject: (state) => {
+    applyStatChanges(state, { authority: 4, military: -8, stress: 5 });
+    setFlag(state, 'military_cd', 4);
+    setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
+    pushLog(state, '你把换防名单压回兵部，宫门暂时还是你的宫门。只是韩烈退下时那张冷脸，已经写满了“以后再算”。');
+  },
   merchants_open_charter: (state) => {
     applyStatChanges(state, { treasury: 18, authority: -8, favor: -6, stress: -4 });
     setFlag(state, 'merchants_cd', 6);
@@ -374,6 +409,21 @@ const choiceEffects = {
     deleteFlag(state, 'merchants_aftermath');
     setFlag(state, 'merchants_aftermath_seen', 1);
     pushLog(state, '你反手给商会加了一刀税。百姓拍手称快，沈万金却把笑意收了个干净。');
+  },
+  merchants_accounts_cover: (state) => {
+    applyStatChanges(state, { treasury: 14, authority: -8, favor: -4, stress: -2 });
+    setFlag(state, 'merchants_cd', 6);
+    pushLog(state, '你把火案压成了“仓库失修”的普通事故，银路照常运转。沈万金自然心领神会，只是朝廷脸面又被账房先生按在地上擦了一遍。');
+  },
+  merchants_accounts_probe: (state) => {
+    applyStatChanges(state, { treasury: 7, authority: 5, stress: 3 });
+    setFlag(state, 'merchants_cd', 5);
+    pushLog(state, '你命人暗查火案，既没立刻翻脸，也没装作看不见。沈万金开始频繁递话，说明这把火多半确实烧到了他不想见人的地方。');
+  },
+  merchants_accounts_seize: (state) => {
+    applyStatChanges(state, { treasury: 8, authority: 7, favor: 3, stress: 4 });
+    setFlag(state, 'merchants_cd', 4);
+    pushLog(state, '你借火案狠狠干了一刀，把几条漕运生意重新收回朝廷名下。百姓叫好，商会却也从此把你记进了那本最不想翻开的账。');
   },
   foreign_sign_treaty: (state) => {
     applyStatChanges(state, { treasury: 12, favor: 4, military: -6, authority: -4 });
