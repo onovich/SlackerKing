@@ -47,6 +47,16 @@ function deleteFlag(state, key) {
   delete state.flags[key];
 }
 
+function markAftermath(state, key, value) {
+  setFlag(state, key, value);
+  deleteFlag(state, `${key}_seen`);
+}
+
+function resolveAftermath(state, key) {
+  deleteFlag(state, key);
+  setFlag(state, `${key}_seen`, 1);
+}
+
 function clampState(state) {
   RESOURCE_KEYS.forEach((key) => {
     state.resources[key] = Math.max(0, Math.min(100, state.resources[key]));
@@ -177,6 +187,10 @@ const eventConditions = {
   foreign_trade_ready: (state) => state.day > 3 && (state.factions.foreign || 0) >= 3 && !getFlag(state, 'foreign_cd'),
   foreign_marriage_ready: (state) => Boolean(getFlag(state, 'foreign_aftermath')) && !getFlag(state, 'foreign_aftermath_seen'),
   foreign_inspection_ready: (state) => state.day > 5 && Boolean(getFlag(state, 'foreign_aftermath_seen')) && state.history.includes('e_foreign_marriage') && (state.factions.foreign || 0) >= 5 && !getFlag(state, 'foreign_cd'),
+  queen_salon_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'queen_salon_aftermath')) && !getFlag(state, 'queen_salon_aftermath_seen') && (state.factions.old_nobles || 0) >= 2,
+  mistress_credit_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'mistress_credit_aftermath')) && !getFlag(state, 'mistress_credit_aftermath_seen') && (state.factions.merchants || 0) >= 2,
+  hunt_camp_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'hunt_camp_aftermath')) && !getFlag(state, 'hunt_camp_aftermath_seen') && (state.factions.military || 0) >= 2,
+  spy_dossier_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'spy_dossier_aftermath')) && !getFlag(state, 'spy_dossier_aftermath_seen') && (state.factions.foreign || 0) >= 1,
   magic_beast_ready: (state) => state.day > 5 && !getFlag(state, 'beast_seen'),
   corrupt_hand_ready: (state) => state.resources.authority < 60 && !getFlag(state, 'hand_warned'),
 };
@@ -501,6 +515,73 @@ const choiceEffects = {
     setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
     pushLog(state, '你把监使提案连同使臣一起赶出了大殿。朝堂上下总算找回一点脸面，但边境也因此重新闻到了火药味。');
   },
+  queen_salon_grand: (state) => {
+    applyStatChanges(state, { treasury: -8, authority: 8, favor: 4, stress: 2 });
+    setFlag(state, 'nobles_excess', Math.max(1, getFlag(state, 'nobles_excess') || 0));
+    resolveAftermath(state, 'queen_salon_aftermath');
+    pushLog(state, '你把宗室茶会硬生生办成了一场体面秀。旧贵族们很满意，只是他们也更确信你还会继续为体面埋单。');
+  },
+  queen_salon_selective: (state) => {
+    applyStatChanges(state, { treasury: -3, authority: 4, favor: 2, stress: 1 });
+    resolveAftermath(state, 'queen_salon_aftermath');
+    pushLog(state, '你只见了最关键的几位宗室人物，既留了体面，也没把整天都赔给寒暄。');
+  },
+  queen_salon_decline: (state) => {
+    applyStatChanges(state, { authority: -6, favor: -2 });
+    setFlag(state, 'hand_power', (getFlag(state, 'hand_power') || 0) + 1);
+    resolveAftermath(state, 'queen_salon_aftermath');
+    pushLog(state, '你把满屋子的旧贵族晾在偏殿。王后替你圆了场，可他们显然把这笔账记在了心里。');
+  },
+  mistress_credit_rollover: (state) => {
+    applyStatChanges(state, { treasury: 12, authority: -6, favor: -6, stress: -8 });
+    setFlag(state, 'merchants_corruption', Math.max(1, getFlag(state, 'merchants_corruption') || 0));
+    resolveAftermath(state, 'mistress_credit_aftermath');
+    pushLog(state, '你痛快地把账全记在了商人的本子上。今夜是轻松了，但他们显然不打算白替你垫钱。');
+  },
+  mistress_credit_trim: (state) => {
+    applyStatChanges(state, { treasury: 5, authority: -2, favor: -2, stress: -6 });
+    setFlag(state, 'merchants_corruption', Math.max(1, getFlag(state, 'merchants_corruption') || 0));
+    resolveAftermath(state, 'mistress_credit_aftermath');
+    pushLog(state, '你削掉了最夸张的排场，只留下几笔还能圆过去的账。商人照样愿意接单，只是不会忘记你欠了他们人情。');
+  },
+  mistress_credit_break: (state) => {
+    applyStatChanges(state, { authority: 4, favor: 2, stress: 8 });
+    resolveAftermath(state, 'mistress_credit_aftermath');
+    pushLog(state, '你把酒宴和账单一起掀了。宫里对你的观感好了点，但那股没发泄完的烦躁只会原封不动回到你自己身上。');
+  },
+  hunt_camp_bonus: (state) => {
+    applyStatChanges(state, { treasury: -8, military: 10, authority: 3, stress: -2 });
+    setFlag(state, 'military_overreach', Math.max(1, getFlag(state, 'military_overreach') || 0));
+    resolveAftermath(state, 'hunt_camp_aftermath');
+    pushLog(state, '你借着酒劲把几项赏格和补给都拍了板。将校们当然欢呼，但他们也更习惯在猎场上向你直接要东西了。');
+  },
+  hunt_camp_drill: (state) => {
+    applyStatChanges(state, { treasury: -3, military: 6, authority: 2, stress: -4 });
+    resolveAftermath(state, 'hunt_camp_aftermath');
+    pushLog(state, '你把话题拽回操练和布防，只给了将校有限的甜头。韩烈看得出你在留后手，但也接受了这份面子。');
+  },
+  hunt_camp_rebuke: (state) => {
+    applyStatChanges(state, { authority: 4, military: -6, stress: 4 });
+    setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
+    resolveAftermath(state, 'hunt_camp_aftermath');
+    pushLog(state, '你当场打断了将校们的借酒进言。宫廷规矩是保住了，可军中的怨气也顺手涨了一截。');
+  },
+  spy_dossier_strike: (state) => {
+    applyStatChanges(state, { authority: 8, treasury: 4, favor: -2, stress: 6 });
+    resolveAftermath(state, 'spy_dossier_aftermath');
+    pushLog(state, '你抽出几页密档当朝敲打群臣。所有人都安静了下来，但也都记住了你手里那把不会轻易收回的刀。');
+  },
+  spy_dossier_blackmail: (state) => {
+    applyStatChanges(state, { treasury: 10, authority: -5, stress: 2 });
+    setFlag(state, 'merchants_corruption', Math.max(1, getFlag(state, 'merchants_corruption') || 0));
+    resolveAftermath(state, 'spy_dossier_aftermath');
+    pushLog(state, '你没有公开密档，而是把它换成了一笔安静的银子。国库舒服了一点，名声却也跟着脏了一点。');
+  },
+  spy_dossier_bury: (state) => {
+    applyStatChanges(state, { stress: -6, authority: -2 });
+    resolveAftermath(state, 'spy_dossier_aftermath');
+    pushLog(state, '你把密档重新锁回柜里，决定先不动任何人。这份克制让今天轻了些，但王座也不会因为你仁慈就变得更稳。');
+  },
   beast_raise: (state) => {
     applyStatChanges(state, { treasury: -20, authority: 18, military: 4 });
     setFlag(state, 'has_griffon', 1);
@@ -638,11 +719,13 @@ function getNightWarningFlagKey(riskKey) {
 const locationActions = {
   visit_queen: (state) => {
     applyStatChanges(state, { energy: -10, authority: 8, favor: 4 });
+    markAftermath(state, 'queen_salon_aftermath', 'queued');
     pushLog(state, '你与王后共进下午茶，顺手安抚了几家心怀不满的旧贵族。无聊，但确实稳住了局面。');
   },
   visit_mistress: (state) => {
     if (state.resources.treasury >= 20) {
       applyStatChanges(state, { treasury: -20, stress: -28, favor: -8, authority: -5 });
+      markAftermath(state, 'mistress_credit_aftermath', 'queued');
       pushLog(state, '醇酒、音乐与温柔乡让你彻底松了口气，但宫里已经有人开始议论陛下又荒唐了一整晚。');
       return;
     }
@@ -652,11 +735,13 @@ const locationActions = {
   },
   visit_hunt: (state) => {
     applyStatChanges(state, { energy: -18, treasury: -5, military: 9, stress: -10 });
+    markAftermath(state, 'hunt_camp_aftermath', 'queued');
     pushLog(state, '你射中了一头公鹿。武将们大声喝彩，但这场排场不小的围猎也实打实烧掉了一笔钱。');
   },
   visit_spy: (state) => {
     applyStatChanges(state, { treasury: -5 });
     resolveRumors(state);
+    markAftermath(state, 'spy_dossier_aftermath', 'queued');
   },
   visit_sleep: (state) => {
     applyStatChanges(state, { energy: 35, stress: -12, authority: -4 });
