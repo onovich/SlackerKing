@@ -19,3 +19,7 @@ SlackerKing is a Vite + React refactor of the original single-file court surviva
 - GitHub Pages deployment is automated by [\.github/workflows/deploy.yml](.github/workflows/deploy.yml), and Vite is configured with the repository base path in [vite.config.js](vite.config.js).<br/>**GitHub Pages 部署已由 [\.github/workflows/deploy.yml](.github/workflows/deploy.yml) 自动化处理，Vite 也已在 [vite.config.js](vite.config.js) 中配置仓库子路径 base。**
 - After pushing to `main`, set `Settings -> Pages -> Source` to `GitHub Actions` in the GitHub repository.<br/>**推送到 `main` 后，请在 GitHub 仓库中将 `Settings -> Pages -> Source` 切换为 `GitHub Actions`。**
 - The expected Pages URL is `https://onovich.github.io/SlackerKing/`.<br/>**预期的 Pages 地址为 `https://onovich.github.io/SlackerKing/`。**
+
+## Planning Docs
+- See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) for the active execution roadmap.<br/>**当前执行路线图见 [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md)。**
+- See [docs/PHASE_1_READABILITY_SPEC.md](docs/PHASE_1_READABILITY_SPEC.md) for the current readability and UX baseline spec.<br/>**当前阶段的信息可读性与体验基线规格见 [docs/PHASE_1_READABILITY_SPEC.md](docs/PHASE_1_READABILITY_SPEC.md)。**
