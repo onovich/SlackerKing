@@ -91,6 +91,10 @@ function getTopEntry(recordMap) {
   return Object.entries(recordMap ?? {}).sort((left, right) => right[1] - left[1])[0] ?? null;
 }
 
+function getRecentRuns(runRecords) {
+  return Array.isArray(runRecords?.recentRuns) ? runRecords.recentRuns.slice(0, 3) : [];
+}
+
 function getGuidance(gameState, visibleRisks, factionOverview) {
   const lowestResource = Object.entries(gameState.resources).sort((left, right) => left[1] - right[1])[0];
   const highestRisk = visibleRisks[0];
@@ -173,6 +177,7 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
   const guidance = getGuidance(gameState, visibleRisks, factionOverview);
   const topDeathCause = getTopEntry(runRecords?.deathCauses);
   const topEpithet = getTopEntry(runRecords?.epithets);
+  const recentRuns = getRecentRuns(runRecords);
 
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:gap-4 xl:w-72">
@@ -234,6 +239,17 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
               败局记录会长期保存在本地。多试几条路线，这里会慢慢长成你的王朝档案。
             </div>
           )}
+          {recentRuns.length ? (
+            <div className="space-y-2">
+              <div className="text-xs uppercase tracking-[0.25em] text-gray-500">最近几局</div>
+              {recentRuns.map((run, index) => (
+                <div key={`${run.day}-${run.cause}-${index}`} className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3 text-xs leading-5 text-gray-300">
+                  <div className="font-semibold text-gray-100">第 {run.day} 天 · {run.cause || '未知败局'}</div>
+                  <div className="mt-1 text-gray-500">{run.epithet || run.title || '无称号记录'}</div>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-2">

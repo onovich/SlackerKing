@@ -6,6 +6,7 @@ export function createDefaultRunRecords() {
     totalRuns: 0,
     deathCauses: {},
     epithets: {},
+    recentRuns: [],
   };
 }
 
@@ -26,6 +27,7 @@ export function loadRunRecords() {
       totalRuns: typeof parsed?.totalRuns === 'number' ? parsed.totalRuns : 0,
       deathCauses: parsed?.deathCauses && typeof parsed.deathCauses === 'object' ? parsed.deathCauses : {},
       epithets: parsed?.epithets && typeof parsed.epithets === 'object' ? parsed.epithets : {},
+      recentRuns: Array.isArray(parsed?.recentRuns) ? parsed.recentRuns.filter((entry) => entry && typeof entry === 'object').slice(0, 6) : [],
     };
   } catch {
     return createDefaultRunRecords();
@@ -41,11 +43,22 @@ export function saveRunRecords(records) {
 }
 
 export function recordFinishedRun(records, runSummary) {
+  const nextRecentRuns = [
+    {
+      day: runSummary.day ?? 0,
+      cause: runSummary.cause ?? '',
+      epithet: runSummary.epithet ?? '',
+      title: runSummary.title ?? '',
+    },
+    ...(records?.recentRuns ?? []),
+  ].slice(0, 6);
+
   const next = {
     bestDay: Math.max(records?.bestDay ?? 0, runSummary.day ?? 0),
     totalRuns: (records?.totalRuns ?? 0) + 1,
     deathCauses: { ...(records?.deathCauses ?? {}) },
     epithets: { ...(records?.epithets ?? {}) },
+    recentRuns: nextRecentRuns,
   };
 
   if (runSummary.cause) {

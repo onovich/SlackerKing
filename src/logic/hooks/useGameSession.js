@@ -89,6 +89,7 @@ export function useGameSession() {
         day: gameState.day,
         cause: gameState.gameOver?.cause,
         epithet: gameState.gameOver?.regimeSummary?.epithet,
+        title: gameState.gameOver?.title,
       });
       saveRunRecords(next);
       return next;

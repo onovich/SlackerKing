@@ -30,11 +30,16 @@ function getRecordEntries(recordMap) {
   return Object.entries(recordMap ?? {}).sort((left, right) => right[1] - left[1]);
 }
 
+function getRecentRuns(runRecords) {
+  return Array.isArray(runRecords?.recentRuns) ? runRecords.recentRuns.slice(0, 4) : [];
+}
+
 export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
   const retryHint = getRetryHint(gameOver?.cause);
   const figureNames = getFigureNames(gameOver?.regimeSummary);
   const deathCauseEntries = getRecordEntries(runRecords?.deathCauses).slice(0, 4);
   const epithetEntries = getRecordEntries(runRecords?.epithets).slice(0, 3);
+  const recentRuns = getRecentRuns(runRecords);
 
   return (
     <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
@@ -106,6 +111,20 @@ export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
                 <span key={epithet} className="rounded-full border border-yellow-800/70 bg-yellow-950/20 px-3 py-1 text-xs text-yellow-100">
                   {epithet} x{count}
                 </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {recentRuns.length ? (
+          <div className="mt-4">
+            <div className="text-xs uppercase tracking-[0.25em] text-gray-500">最近几局</div>
+            <div className="mt-2 space-y-2">
+              {recentRuns.map((run, index) => (
+                <div key={`${run.day}-${run.cause}-${index}`} className="rounded-lg border border-gray-700/70 bg-gray-950/40 px-3 py-2 text-xs text-gray-300">
+                  <div className="font-semibold text-gray-100">第 {run.day} 天驾崩 · {run.cause || '未知败局'}</div>
+                  <div className="mt-1 text-gray-500">{run.epithet || run.title || '无称号记录'}</div>
+                </div>
               ))}
             </div>
           </div>
