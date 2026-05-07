@@ -94,8 +94,34 @@ function getNightTakeaway(summary) {
   };
 }
 
-export function NightScreen({ summary, dailyChanges, onNextDay }) {
+function getRegimeTone(regimeSummary) {
+  if (!regimeSummary?.primaryFaction) {
+    return 'border-gray-700 bg-gray-900/40 text-gray-200';
+  }
+
+  if (regimeSummary.primaryFaction.id === 'old_nobles') {
+    return 'border-yellow-800/70 bg-yellow-950/20 text-yellow-100';
+  }
+
+  if (regimeSummary.primaryFaction.id === 'military') {
+    return 'border-red-800/70 bg-red-950/20 text-red-100';
+  }
+
+  if (regimeSummary.primaryFaction.id === 'merchants') {
+    return 'border-amber-800/70 bg-amber-950/20 text-amber-100';
+  }
+
+  return 'border-sky-800/70 bg-sky-950/20 text-sky-100';
+}
+
+function getFigureNames(regimeSummary) {
+  return regimeSummary?.figures?.map((figure) => figure.name).join('、') ?? '';
+}
+
+export function NightScreen({ summary, dailyChanges, regimeSummary, onNextDay }) {
   const takeaway = getNightTakeaway(summary);
+  const regimeTone = getRegimeTone(regimeSummary);
+  const figureNames = getFigureNames(regimeSummary);
 
   return (
     <section className="parchment flex w-full max-w-2xl flex-col rounded-xl p-8 xl:max-w-4xl xl:p-10">
@@ -109,6 +135,13 @@ export function NightScreen({ summary, dailyChanges, onNextDay }) {
         <div className="text-xs uppercase tracking-[0.3em] text-gray-400">Tonight's Takeaway</div>
         <div className="mt-2 text-lg font-bold">{takeaway.title}</div>
         <p className="mt-2 text-sm leading-6 opacity-90">{takeaway.body}</p>
+      </div>
+
+      <div className={`mb-6 rounded-xl border p-4 ${regimeTone}`}>
+        <div className="text-xs uppercase tracking-[0.3em] opacity-70">Court Wind</div>
+        <div className="mt-2 text-lg font-bold">{regimeSummary?.title}</div>
+        <p className="mt-2 text-sm leading-6 opacity-90">{regimeSummary?.body}</p>
+        {figureNames ? <p className="mt-3 text-xs leading-5 opacity-70">今夜最值得盯住的人物：{figureNames}</p> : null}
       </div>
 
       <div className="mb-6 rounded-xl border border-gray-700 bg-gray-900/60 p-4">

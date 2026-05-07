@@ -22,8 +22,13 @@ function getRetryHint(cause) {
   return '回看最后几天的日志，找出最先失控的那一环。下一局先稳住它，再考虑更贪的路线。';
 }
 
+function getFigureNames(regimeSummary) {
+  return regimeSummary?.figures?.map((figure) => figure.name).join('、') ?? '';
+}
+
 export function GameOverScreen({ gameOver, day, onRestart }) {
   const retryHint = getRetryHint(gameOver?.cause);
+  const figureNames = getFigureNames(gameOver?.regimeSummary);
 
   return (
     <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
@@ -46,6 +51,13 @@ export function GameOverScreen({ gameOver, day, onRestart }) {
       <div className="mb-8 rounded-xl border border-yellow-800/60 bg-yellow-900/10 p-4 text-left">
         <div className="text-xs uppercase tracking-[0.3em] text-yellow-500">复盘建议</div>
         <p className="mt-3 text-sm leading-6 text-yellow-100/85">{retryHint}</p>
+      </div>
+
+      <div className="mb-8 rounded-xl border border-gray-700/80 bg-gray-900/50 p-4 text-left">
+        <div className="text-xs uppercase tracking-[0.3em] text-gray-500">统治路线</div>
+        <div className="mt-3 text-base font-bold text-gray-100">{gameOver?.regimeSummary?.title}</div>
+        <p className="mt-2 text-sm leading-6 text-gray-300">{gameOver?.regimeSummary?.body}</p>
+        {figureNames ? <p className="mt-3 text-xs leading-5 text-gray-500">这一局最常站到台前的人物：{figureNames}</p> : null}
       </div>
 
       <button

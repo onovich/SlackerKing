@@ -151,7 +151,12 @@ function evaluateGameOver(state) {
 
   if (cause) {
     state.isGameOver = true;
-    state.gameOver = { cause, title, desc };
+    state.gameOver = {
+      cause,
+      title,
+      desc,
+      regimeSummary: getRegimeSummary(state),
+    };
     pushLog(state, `【驾崩】 ${cause}`);
   }
 }
@@ -812,6 +817,55 @@ export function getCourtFigures(state, event) {
   return Array.from(ids)
     .map((id) => CHARACTER_META[id] ? ({ id, ...CHARACTER_META[id] }) : null)
     .filter(Boolean);
+}
+
+function getFactionRouteSummary(faction) {
+  if (!faction) {
+    return {
+      title: '你的统治还没有稳定押注任何派系',
+      body: '这局更多是在四处救火。你还没真正建立一条持续路线，也因此很难让任何人替你稳住局面。',
+    };
+  }
+
+  if (faction.id === 'old_nobles') {
+    return {
+      title: '你的统治主要靠旧贵族体面支撑',
+      body: '你不断回头维护王室礼制与宗室关系。这条路擅长稳权威，但也会持续吞掉财政与精力。',
+    };
+  }
+
+  if (faction.id === 'military') {
+    return {
+      title: '你的统治已经明显向军方倾斜',
+      body: '你在用军力、军心和强硬姿态维系局面。这条路能压危机，但最怕财政透支与外线连锁。',
+    };
+  }
+
+  if (faction.id === 'merchants') {
+    return {
+      title: '你的统治越来越像在和商会合伙',
+      body: '你换来了更快的银钱与周转空间，但也在持续拿权威和民心给投机者让路。',
+    };
+  }
+
+  return {
+    title: '你的统治正被外部势力牵着走',
+    body: '你不断用拖延、谈判和交易换取喘息。这条路能买时间，但会持续侵蚀宫廷里的脸面与底线。',
+  };
+}
+
+export function getRegimeSummary(state, event = getCurrentEvent(state)) {
+  const factionOverview = getFactionOverview(state);
+  const primaryFaction = factionOverview[0]?.score > 0 ? factionOverview[0] : null;
+  const figures = getCourtFigures(state, event).slice(0, 3);
+  const routeSummary = getFactionRouteSummary(primaryFaction);
+
+  return {
+    primaryFaction,
+    figures,
+    title: routeSummary.title,
+    body: routeSummary.body,
+  };
 }
 
 export function initializeGameState() {

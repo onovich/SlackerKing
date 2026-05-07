@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useGameSession } from './logic/hooks/useGameSession';
-import { getCourtFigures, getFactionOverview, getVisibleRisks, isMorningChoiceAvailable } from './logic/engine/gameEngine';
+import { getCourtFigures, getFactionOverview, getRegimeSummary, getVisibleRisks, isMorningChoiceAvailable } from './logic/engine/gameEngine';
 import { locations } from './data/gameContent';
 import { TopBar } from './view/components/TopBar';
 import { DesktopCompanion } from './view/components/DesktopCompanion';
@@ -51,6 +51,7 @@ export default function App() {
   const visibleRisks = useMemo(() => getVisibleRisks(gameState), [gameState]);
   const factionOverview = useMemo(() => getFactionOverview(gameState), [gameState]);
   const courtFigures = useMemo(() => getCourtFigures(gameState, currentEvent), [currentEvent, gameState]);
+  const regimeSummary = useMemo(() => getRegimeSummary(gameState, currentEvent), [currentEvent, gameState]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -144,7 +145,7 @@ export default function App() {
             ) : null}
 
             {!gameState.isGameOver && gameState.phase === 'night' ? (
-              <NightScreen summary={gameState.nightSummary} dailyChanges={gameState.dailyChanges} onNextDay={nextDay} />
+              <NightScreen summary={gameState.nightSummary} dailyChanges={gameState.dailyChanges} regimeSummary={regimeSummary} onNextDay={nextDay} />
             ) : null}
 
             <FloatingTexts items={floatingTexts} />
