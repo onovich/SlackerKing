@@ -1,3 +1,5 @@
+import { getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
+
 function ShortcutRow({ keyLabel, description }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-gray-700/80 bg-gray-900/70 px-3 py-2 text-sm text-gray-300">
@@ -83,6 +85,15 @@ function ArchiveChip({ label, value, toneClass = 'text-gray-100' }) {
     <div className="rounded-lg border border-gray-700/80 bg-gray-900/60 px-3 py-2 text-sm">
       <div className="text-xs text-gray-500">{label}</div>
       <div className={`mt-1 font-bold ${toneClass}`}>{value}</div>
+    </div>
+  );
+}
+
+function CodexEntry({ entry, accentClass, lockedLabel }) {
+  return (
+    <div className={`rounded-lg border px-3 py-2 text-xs leading-5 ${entry.unlocked ? accentClass : 'border-gray-700/70 bg-gray-900/40 text-gray-500'}`}>
+      <div className="font-semibold">{entry.title}</div>
+      <div className="mt-1 opacity-80">{entry.unlocked ? `${entry.description} · 已见 ${entry.count} 次` : lockedLabel}</div>
     </div>
   );
 }
@@ -178,6 +189,8 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
   const topDeathCause = getTopEntry(runRecords?.deathCauses);
   const topEpithet = getTopEntry(runRecords?.epithets);
   const recentRuns = getRecentRuns(runRecords);
+  const deathCauseCodex = getDeathCauseCodex(runRecords);
+  const epithetCodex = getEpithetArchetypeCodex(runRecords);
 
   return (
     <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:gap-4 xl:w-72">
@@ -250,6 +263,22 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
               ))}
             </div>
           ) : null}
+          <div className="space-y-2">
+            <div className="text-xs uppercase tracking-[0.25em] text-gray-500">死法图鉴</div>
+            <div className="grid gap-2">
+              {deathCauseCodex.map((entry) => (
+                <CodexEntry key={entry.id} entry={entry} accentClass="border-red-800/70 bg-red-950/20 text-red-100" lockedLabel="尚未见过这种败局。" />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="text-xs uppercase tracking-[0.25em] text-gray-500">统治原型</div>
+            <div className="grid gap-2">
+              {epithetCodex.map((entry) => (
+                <CodexEntry key={entry.id} entry={entry} accentClass="border-yellow-800/70 bg-yellow-950/20 text-yellow-100" lockedLabel="尚未走出这类统治原型。" />
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-2">

@@ -1,5 +1,61 @@
 const STORAGE_KEY = 'slackerking-run-records-v1';
 
+export const DEATH_CAUSE_CATALOG = [
+  {
+    id: '中风崩殂',
+    title: '过劳死者',
+    description: '死于长期失控的压力，通常意味着你把减压和节奏管理拖到了太晚。',
+  },
+  {
+    id: '破产引发内乱',
+    title: '乞丐王',
+    description: '国库见底后，王座会先被军饷和暴民一起掀翻。',
+  },
+  {
+    id: '权臣逼宫',
+    title: '傀儡',
+    description: '权威跌穿底线后，朝堂不会再等你把局面慢慢补回来。',
+  },
+  {
+    id: '外敌破城',
+    title: '亡国之君',
+    description: '军力崩塌时，所有外交姿态都会迅速变成亡国倒计时。',
+  },
+  {
+    id: '大革命',
+    title: '断头台贵宾',
+    description: '民心被连续透支后，最先回来的不是忠诚，而是清算。',
+  },
+];
+
+export const EPITHET_ARCHETYPE_CATALOG = [
+  {
+    id: '救火国王',
+    title: '救火国王',
+    description: '没有稳定押注任何派系，更多是在四处止损和临时救火。',
+  },
+  {
+    id: '礼制守成人',
+    title: '礼制守成人',
+    description: '靠宗室、礼法和王室体面维持秩序，是典型的旧贵族统治原型。',
+  },
+  {
+    id: '军镇共主',
+    title: '军镇共主',
+    description: '用军心、赏格和强硬姿态撑住局势，是典型的军方路线原型。',
+  },
+  {
+    id: '账簿之王',
+    title: '账簿之王',
+    description: '靠周转、借贷和商路续命，是典型的商会路线原型。',
+  },
+  {
+    id: '边贸调停者',
+    title: '边贸调停者',
+    description: '靠谈判、拖延和边贸交易买时间，是典型的外邦路线原型。',
+  },
+];
+
 export function createDefaultRunRecords() {
   return {
     bestDay: 0,
@@ -70,4 +126,29 @@ export function recordFinishedRun(records, runSummary) {
   }
 
   return next;
+}
+
+export function getDeathCauseCodex(records) {
+  return DEATH_CAUSE_CATALOG.map((entry) => {
+    const count = records?.deathCauses?.[entry.id] ?? 0;
+    return {
+      ...entry,
+      unlocked: count > 0,
+      count,
+    };
+  });
+}
+
+export function getEpithetArchetypeCodex(records) {
+  return EPITHET_ARCHETYPE_CATALOG.map((entry) => {
+    const count = Object.entries(records?.epithets ?? {}).reduce((sum, [epithet, value]) => (
+      epithet.endsWith(entry.id) ? sum + value : sum
+    ), 0);
+
+    return {
+      ...entry,
+      unlocked: count > 0,
+      count,
+    };
+  });
 }

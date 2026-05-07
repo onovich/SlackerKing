@@ -1,3 +1,5 @@
+import { getDeathCauseCodex, getEpithetArchetypeCodex } from '../../logic/storage/runRecords';
+
 function getRetryHint(cause) {
   if (cause === '中风崩殂') {
     return '你不是死于大事，而是死于长期失控的压力。下一局把减压当成硬约束，而不是可选项。';
@@ -34,12 +36,23 @@ function getRecentRuns(runRecords) {
   return Array.isArray(runRecords?.recentRuns) ? runRecords.recentRuns.slice(0, 4) : [];
 }
 
+function CodexBadge({ entry, accentClass, lockedLabel }) {
+  return (
+    <div className={`rounded-lg border px-3 py-2 text-xs leading-5 ${entry.unlocked ? accentClass : 'border-gray-700/70 bg-gray-950/30 text-gray-500'}`}>
+      <div className="font-semibold">{entry.title}</div>
+      <div className="mt-1">{entry.unlocked ? `${entry.description} · 已见 ${entry.count} 次` : lockedLabel}</div>
+    </div>
+  );
+}
+
 export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
   const retryHint = getRetryHint(gameOver?.cause);
   const figureNames = getFigureNames(gameOver?.regimeSummary);
   const deathCauseEntries = getRecordEntries(runRecords?.deathCauses).slice(0, 4);
   const epithetEntries = getRecordEntries(runRecords?.epithets).slice(0, 3);
   const recentRuns = getRecentRuns(runRecords);
+  const deathCauseCodex = getDeathCauseCodex(runRecords);
+  const epithetCodex = getEpithetArchetypeCodex(runRecords);
 
   return (
     <section className="parchment flex w-full max-w-xl flex-col rounded-xl border-4 border-red-800 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10">
@@ -129,6 +142,24 @@ export function GameOverScreen({ gameOver, day, runRecords, onRestart }) {
             </div>
           </div>
         ) : null}
+
+        <div className="mt-4">
+          <div className="text-xs uppercase tracking-[0.25em] text-gray-500">死法图鉴</div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {deathCauseCodex.map((entry) => (
+              <CodexBadge key={entry.id} entry={entry} accentClass="border-red-800/70 bg-red-950/20 text-red-100" lockedLabel="尚未见过这种败局。" />
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className="text-xs uppercase tracking-[0.25em] text-gray-500">统治原型图鉴</div>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            {epithetCodex.map((entry) => (
+              <CodexBadge key={entry.id} entry={entry} accentClass="border-yellow-800/70 bg-yellow-950/20 text-yellow-100" lockedLabel="尚未走出这类统治原型。" />
+            ))}
+          </div>
+        </div>
       </div>
 
       <button
