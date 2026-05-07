@@ -176,6 +176,7 @@ const eventConditions = {
   merchants_accounts_ready: (state) => state.day > 5 && Boolean(getFlag(state, 'merchants_aftermath_seen')) && state.history.includes('e_merchants_extension') && (state.factions.merchants || 0) >= 5 && !getFlag(state, 'merchants_cd'),
   foreign_trade_ready: (state) => state.day > 3 && (state.factions.foreign || 0) >= 3 && !getFlag(state, 'foreign_cd'),
   foreign_marriage_ready: (state) => Boolean(getFlag(state, 'foreign_aftermath')) && !getFlag(state, 'foreign_aftermath_seen'),
+  foreign_inspection_ready: (state) => state.day > 5 && Boolean(getFlag(state, 'foreign_aftermath_seen')) && state.history.includes('e_foreign_marriage') && (state.factions.foreign || 0) >= 5 && !getFlag(state, 'foreign_cd'),
   magic_beast_ready: (state) => state.day > 5 && !getFlag(state, 'beast_seen'),
   corrupt_hand_ready: (state) => state.resources.authority < 60 && !getFlag(state, 'hand_warned'),
 };
@@ -472,6 +473,25 @@ const choiceEffects = {
     setFlag(state, 'foreign_aftermath_seen', 1);
     setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
     pushLog(state, '你拒绝拿王室婚事做筹码。阿史那收起了笑，边境也重新闻到了火药味。');
+  },
+  foreign_inspection_accept: (state) => {
+    applyStatChanges(state, { treasury: 10, authority: -8, military: -4, favor: 2 });
+    deleteFlag(state, 'envoy_active');
+    setFlag(state, 'envoy_cd', 10);
+    setFlag(state, 'foreign_cd', 6);
+    pushLog(state, '你允许汗国监使进驻边贸口岸，边境果然安静了许多。只是消息传回京城后，连最会装糊涂的大臣都知道你又退了一步。');
+  },
+  foreign_inspection_limit: (state) => {
+    applyStatChanges(state, { treasury: 4, authority: -3, stress: 2 });
+    setFlag(state, 'envoy_active', Math.max(1, getFlag(state, 'envoy_active') || 0));
+    setFlag(state, 'foreign_cd', 5);
+    pushLog(state, '你给了监使一顶好看的帽子，却没给他真正的钥匙。阿史那暂时接受了体面安排，但显然还会回来继续抬价。');
+  },
+  foreign_inspection_expel: (state) => {
+    applyStatChanges(state, { authority: 6, military: 8, stress: 6 });
+    setFlag(state, 'foreign_cd', 4);
+    setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
+    pushLog(state, '你把监使提案连同使臣一起赶出了大殿。朝堂上下总算找回一点脸面，但边境也因此重新闻到了火药味。');
   },
   beast_raise: (state) => {
     applyStatChanges(state, { treasury: -20, authority: 18, military: 4 });

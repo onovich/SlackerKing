@@ -372,6 +372,23 @@ export const eventDatabase = [
     ],
   },
   {
+    id: 'e_foreign_inspection',
+    tag: '路线升级',
+    icon: 'fa-scroll',
+    color: 'text-sky-200',
+    factionId: 'foreign',
+    conditionId: 'foreign_inspection_ready',
+    weight: 7,
+    characterIds: ['envoy_ashina', 'queen_isabella'],
+    title: '边贸互市要派驻监使',
+    desc: '阿史那又递来新条件：既然互市和联姻都谈到这一步，不如让汗国派驻监使常驻边贸口岸，方便“共同维护秩序”。王后冷冷提醒你，这话翻译过来，就是让外人把手伸进你的边关账簿。',
+    choices: [
+      { id: 'foreign_inspection_accept', tierId: 'high', text: '【先让他们进来】只要边境安静，脸面可以再忍一忍。 (稳外患, 伤权威)', energy: 16, requirementId: 'always', effectId: 'foreign_inspection_accept', factionEffects: { foreign: 2 } },
+      { id: 'foreign_inspection_limit', tierId: 'mid', text: '【只给虚衔】让他们挂名巡视，但别碰实权。 (中耗, 再买时间)', energy: 10, requirementId: 'always', effectId: 'foreign_inspection_limit', factionEffects: { foreign: 1, old_nobles: 1 } },
+      { id: 'foreign_inspection_expel', tierId: 'low', text: '【滚回草原】互市可以谈，边关钥匙不给。 (省精力, 转向强硬)', energy: 0, requirementId: 'always', effectId: 'foreign_inspection_expel', factionEffects: { military: 1 } },
+    ],
+  },
+  {
     id: 'e_nobles_restoration',
     tag: '路线升级',
     icon: 'fa-landmark',
