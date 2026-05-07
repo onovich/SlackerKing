@@ -53,13 +53,11 @@ function SaveSlotCard({ slot, isSelected, onSelect }) {
   );
 }
 
-function SlotSubmenu({ action, saveSlots, activeSlotId, selectedSlotId, onSelectSlot, onConfirm, onBack }) {
-  const title = action === 'save' ? '选择存档槽位' : '选择读档槽位';
-
+function LoadSubmenu({ saveSlots, activeSlotId, selectedSlotId, onSelectSlot, onConfirm, onBack }) {
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-xl font-bold text-gray-100 sm:text-2xl">{title}</h2>
+        <h2 className="text-xl font-bold text-gray-100 sm:text-2xl">选择读档槽位</h2>
         <button
           type="button"
           onClick={onBack}
@@ -91,27 +89,20 @@ function SlotSubmenu({ action, saveSlots, activeSlotId, selectedSlotId, onSelect
           onClick={() => onConfirm(selectedSlotId)}
           className="rounded-xl border border-yellow-600 bg-yellow-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-yellow-600"
         >
-          {action === 'save' ? '确认存档' : '确认读档'}
+          确认读档
         </button>
       </div>
     </div>
   );
 }
 
-export function TitleScreen({ saveSlots, activeSlotId, selectedSlotId, feedback, onSelectSlot, onNewGame, onSave, onLoad }) {
-  const [submenu, setSubmenu] = useState(null);
-  const selectedSlot = saveSlots.find((slot) => slot.id === selectedSlotId) ?? saveSlots[0];
-  const canLoad = Boolean(selectedSlot?.savedRun);
-
-  const handleSave = (slotId) => {
-    if (onSave(slotId)) {
-      setSubmenu(null);
-    }
-  };
+export function TitleScreen({ saveSlots, activeSlotId, selectedSlotId, feedback, onSelectSlot, onNewGame, onLoad }) {
+  const [submenu, setSubmenu] = useState(false);
+  const hasAnySavedRun = saveSlots.some((slot) => slot.savedRun);
 
   const handleLoad = (slotId) => {
     if (onLoad(slotId)) {
-      setSubmenu(null);
+      setSubmenu(false);
     }
   };
 
@@ -121,18 +112,17 @@ export function TitleScreen({ saveSlots, activeSlotId, selectedSlotId, feedback,
         <div className="text-xs uppercase tracking-[0.45em] text-yellow-500">SlackerKing</div>
         <h1 className="mt-3 text-3xl font-black tracking-[0.12em] text-gray-100 sm:text-5xl">王冠之重</h1>
         {submenu ? (
-          <SlotSubmenu
-            action={submenu}
+          <LoadSubmenu
             saveSlots={saveSlots}
             activeSlotId={activeSlotId}
             selectedSlotId={selectedSlotId}
             onSelectSlot={onSelectSlot}
-            onConfirm={submenu === 'save' ? handleSave : handleLoad}
-            onBack={() => setSubmenu(null)}
+            onConfirm={handleLoad}
+            onBack={() => setSubmenu(false)}
           />
         ) : (
           <div className="mt-6 space-y-5">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={onNewGame}
@@ -144,17 +134,8 @@ export function TitleScreen({ saveSlots, activeSlotId, selectedSlotId, feedback,
 
               <button
                 type="button"
-                onClick={() => setSubmenu('save')}
-                className="rounded-2xl border border-gray-600 bg-gray-900/80 px-5 py-5 text-left text-sm font-bold text-gray-100 transition hover:border-yellow-600 hover:bg-gray-800"
-              >
-                <div className="text-[11px] uppercase tracking-[0.28em] text-gray-500">Save</div>
-                <div className="mt-2 text-xl">存档</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSubmenu('load')}
-                disabled={!canLoad && !saveSlots.some((slot) => slot.savedRun)}
+                onClick={() => setSubmenu(true)}
+                disabled={!hasAnySavedRun}
                 className="rounded-2xl border border-gray-600 bg-gray-900/80 px-5 py-5 text-left text-sm font-bold text-gray-100 transition enabled:hover:border-yellow-600 enabled:hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <div className="text-[11px] uppercase tracking-[0.28em] text-gray-500">Load</div>

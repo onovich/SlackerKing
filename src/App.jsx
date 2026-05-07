@@ -204,7 +204,6 @@ export default function App() {
           feedback={menuFeedback}
           onSelectSlot={setSelectedSlotId}
           onNewGame={handleStartNewGame}
-          onSave={handleSave}
           onLoad={handleLoad}
         />
       ) : (
