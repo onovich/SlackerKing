@@ -93,15 +93,15 @@ export function GameOverScreen({ gameOver, day, runRecords, newlyUnlockedMilesto
   const isVictory = Boolean(gameOver?.isVictory);
 
   return (
-    <section className={`parchment flex w-full max-w-xl flex-col rounded-xl border-4 p-8 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] xl:max-w-2xl xl:p-10 ${isVictory ? 'border-emerald-700 shadow-[0_0_30px_rgba(16,185,129,0.2)]' : 'border-red-800'}`}>
+    <section className={`parchment flex w-full max-w-xl flex-col rounded-xl border-4 p-5 text-center shadow-[0_0_30px_rgba(220,38,38,0.3)] sm:p-6 xl:max-w-2xl xl:p-10 ${isVictory ? 'border-emerald-700 shadow-[0_0_30px_rgba(16,185,129,0.2)]' : 'border-red-800'}`}>
       <i className={`fas ${isVictory ? 'fa-crown' : 'fa-skull-crossbones'} mb-6 text-7xl drop-shadow-lg ${isVictory ? 'text-emerald-400' : 'text-red-600'}`} />
-      <h2 className="mb-2 text-4xl font-black tracking-widest text-gray-100">{isVictory ? '功 成' : '驾 崩'}</h2>
+      <h2 className="mb-2 text-3xl font-black tracking-widest text-gray-100 sm:text-4xl">{isVictory ? '功 成' : '驾 崩'}</h2>
       <div className={`mx-auto mb-6 h-1 w-24 ${isVictory ? 'bg-emerald-500' : 'bg-red-600'}`} />
 
-      <h3 className={`mb-4 text-2xl font-bold ${isVictory ? 'text-emerald-300' : 'text-yellow-500'}`}>{gameOver?.cause}</h3>
-      <p className="mb-8 rounded bg-gray-900/50 p-4 text-lg leading-relaxed text-gray-300">{gameOver?.desc}</p>
+      <h3 className={`mb-4 text-xl font-bold sm:text-2xl ${isVictory ? 'text-emerald-300' : 'text-yellow-500'}`}>{gameOver?.cause}</h3>
+      <p className="mb-8 rounded bg-gray-900/50 p-4 text-base leading-7 text-gray-300 sm:text-lg sm:leading-relaxed">{gameOver?.desc}</p>
 
-      <div className="mb-8 grid grid-cols-2 gap-4 rounded bg-gray-800 p-4 text-left text-sm text-gray-400">
+      <div className="mb-8 grid grid-cols-1 gap-4 rounded bg-gray-800 p-4 text-left text-sm text-gray-400 sm:grid-cols-2">
         <div>
           在位天数: <span className="font-bold text-white">{day}</span>
         </div>

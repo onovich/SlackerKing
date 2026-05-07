@@ -124,10 +124,11 @@ export function NightScreen({ summary, dailyChanges, regimeSummary, onNextDay })
   const figureNames = getFigureNames(regimeSummary);
 
   return (
-    <section className="parchment flex w-full max-w-2xl flex-col rounded-xl p-8 xl:max-w-4xl xl:p-10">
+    <section className="parchment flex w-full max-w-2xl flex-col rounded-xl p-5 sm:p-6 xl:max-w-4xl xl:p-10">
       <div className="mb-6 border-b border-gray-700 pb-4 text-center">
         <i className="fas fa-moon mb-4 animate-pulse text-5xl text-blue-400" />
         <h2 className="text-2xl font-bold text-gray-200">暗夜密报</h2>
+        <p className="mt-3 text-sm text-gray-400 xl:hidden">手机端可在底部直接进入下一天，先看完今晚的连锁后果。</p>
         <p className="mt-3 hidden text-sm text-gray-500 xl:block">桌面端可按 Enter 继续，滚轮浏览整晚的连锁后果。</p>
       </div>
 
@@ -175,7 +176,7 @@ export function NightScreen({ summary, dailyChanges, regimeSummary, onNextDay })
       <button
         type="button"
         onClick={onNextDay}
-        className="w-full rounded-lg border border-yellow-500 bg-yellow-700 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-yellow-600"
+        className="hidden w-full rounded-lg border border-yellow-500 bg-yellow-700 py-4 text-lg font-bold text-white shadow-lg transition hover:bg-yellow-600 md:block"
       >
         迎接新的一天（敲响晨钟）
       </button>

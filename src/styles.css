@@ -32,6 +32,14 @@ button {
   background-color: #12141a;
 }
 
+.mobile-dock {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+
+.mobile-log-panel {
+  animation: slideUpSheet 0.22s ease-out;
+}
+
 @media (min-width: 1280px) {
   body::before {
     opacity: 1;
@@ -102,6 +110,17 @@ button {
   100% {
     opacity: 0;
     transform: translateY(-30px);
+  }
+}
+
+@keyframes slideUpSheet {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 

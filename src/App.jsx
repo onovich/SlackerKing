@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGameSession } from './logic/hooks/useGameSession';
 import { getCourtFigures, getFactionOverview, getRegimeSummary, getVisibleRisks, isMorningChoiceAvailable } from './logic/engine/gameEngine';
 import { locations } from './data/gameContent';
 import { TopBar } from './view/components/TopBar';
 import { DesktopCompanion } from './view/components/DesktopCompanion';
 import { LogPanel } from './view/components/LogPanel';
+import { MobileActionBar } from './view/components/MobileActionBar';
 import { ResumePrompt } from './view/components/ResumePrompt';
 import { MorningScreen } from './view/screens/MorningScreen';
 import { AfternoonScreen } from './view/screens/AfternoonScreen';
@@ -24,6 +25,7 @@ function FloatingTexts({ items }) {
 }
 
 export default function App() {
+  const [mobileLogOpen, setMobileLogOpen] = useState(false);
   const {
     gameState,
     runRecords,
@@ -46,6 +48,10 @@ export default function App() {
   useEffect(() => {
     document.title = 'SlackerKing';
   }, []);
+
+  useEffect(() => {
+    setMobileLogOpen(false);
+  }, [gameState.phase, gameState.isGameOver]);
 
   const choiceAvailability = useMemo(
     () => Object.fromEntries(
@@ -122,13 +128,13 @@ export default function App() {
   return (
     <div className={`app-shell relative flex h-screen w-screen flex-col selection:bg-yellow-700 selection:text-white ${damageFlash ? 'damage-flash' : ''}`}>
       <div className="flex h-full w-full flex-col xl:mx-auto xl:max-w-[1720px] xl:px-5 xl:py-4">
-        <TopBar gameState={gameState} visibleRisks={visibleRisks} />
+        <TopBar gameState={gameState} visibleRisks={visibleRisks} onOpenLog={() => setMobileLogOpen(true)} />
 
-        <main className="flex flex-1 overflow-hidden xl:gap-5 xl:overflow-visible xl:pt-4">
+        <main className="flex flex-1 overflow-hidden pb-24 xl:gap-5 xl:overflow-visible xl:pb-0 xl:pt-4">
           <DesktopCompanion gameState={gameState} currentEvent={currentEvent} visibleRisks={visibleRisks} factionOverview={factionOverview} courtFigures={courtFigures} runRecords={runRecords} />
 
           <div
-            className="relative flex flex-1 items-center justify-center overflow-y-auto p-4 md:p-8 xl:rounded-[28px] xl:border xl:border-gray-700/80 xl:bg-[radial-gradient(circle_at_top,_rgba(74,85,104,0.28),_rgba(18,20,26,0.95)_55%)] xl:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+            className="relative flex flex-1 items-start justify-center overflow-y-auto p-3 pb-28 sm:p-4 sm:pb-32 md:items-center md:p-8 md:pb-8 xl:rounded-[28px] xl:border xl:border-gray-700/80 xl:bg-[radial-gradient(circle_at_top,_rgba(74,85,104,0.28),_rgba(18,20,26,0.95)_55%)] xl:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
             id="interaction-area"
           >
             {gameState.isGameOver ? (
@@ -164,6 +170,17 @@ export default function App() {
           <LogPanel logs={gameState.logs} />
         </main>
       </div>
+
+      {mobileLogOpen ? <LogPanel logs={gameState.logs} variant="mobile" onClose={() => setMobileLogOpen(false)} /> : null}
+      {!resumePrompt ? (
+        <MobileActionBar
+          gameState={gameState}
+          currentEvent={currentEvent}
+          onOpenLog={() => setMobileLogOpen(true)}
+          onEndAfternoon={endAfternoon}
+          onNextDay={nextDay}
+        />
+      ) : null}
 
       {resumePrompt ? (
         <ResumePrompt
