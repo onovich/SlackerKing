@@ -454,12 +454,46 @@ export const eventDatabase = [
     conditionId: 'mistress_credit_ready',
     weight: 7,
     characterIds: ['guildmaster_shen'],
-    title: '庄园账单与新朋友',
-    desc: '你在情妇庄园挥霍过后，管家递上一摞账单，旁边还站着几个笑容客气得过分的放贷商人。他们表示：陛下若手头紧，账可以先记着，条件以后慢慢谈。',
+    title: '教坊司账单与新朋友',
+    desc: '你在教坊司挥霍过后，管事递上一摞账单，旁边还站着几个笑容客气得过分的放贷商人。他们表示：陛下若手头紧，账可以先记着，条件以后慢慢谈。',
     choices: [
       { id: 'mistress_credit_rollover', tierId: 'high', text: '【先记在账上】反正以后总有人替朕买单。 (缓压, 伤权威/民心)', energy: 12, requirementId: 'always', effectId: 'mistress_credit_rollover', factionEffects: { merchants: 2 } },
       { id: 'mistress_credit_trim', tierId: 'mid', text: '【把排场收一收】账可以欠，但别欠得太难看。 (中耗, 控风险)', energy: 8, requirementId: 'always', effectId: 'mistress_credit_trim', factionEffects: { merchants: 1 } },
       { id: 'mistress_credit_break', tierId: 'low', text: '【今天到此为止】酒停了，人也散了，免得越欠越多。 (省精力, 短期难受)', energy: 0, requirementId: 'always', effectId: 'mistress_credit_break', factionEffects: { old_nobles: 1 } },
+    ],
+  },
+  {
+    id: 'e_treasury_audit',
+    tag: '午后后续',
+    icon: 'fa-book-open',
+    color: 'text-amber-200',
+    factionId: 'merchants',
+    conditionId: 'treasury_audit_ready',
+    weight: 7,
+    characterIds: ['guildmaster_shen', 'lord_pei'],
+    title: '王室账房翻出烂账',
+    desc: '你在账房坐了一下午后，司库总算捧出几册不敢见人的账本。税款被截留、军粮被挪用、商会垫款层层转手，每一页都在提醒你：这国家能撑到今天已经算奇迹。',
+    choices: [
+      { id: 'treasury_audit_seize', tierId: 'high', text: '【当场抄补】先把能追回的银子全追回来。 (补国库, 提压力)', energy: 16, requirementId: 'always', effectId: 'treasury_audit_seize', factionEffects: { merchants: 1, old_nobles: 1 } },
+      { id: 'treasury_audit_balance', tierId: 'mid', text: '【先平账面】把最危险的窟窿先补上，别让明天直接炸开。 (中耗, 稳国库)', energy: 10, requirementId: 'always', effectId: 'treasury_audit_balance', factionEffects: { merchants: 1 } },
+      { id: 'treasury_audit_bury', tierId: 'low', text: '【锁回柜底】今天先别追究，免得牵出太多人。 (省精力, 埋后患)', energy: 0, requirementId: 'always', effectId: 'treasury_audit_bury', factionEffects: { merchants: 1 } },
+    ],
+  },
+  {
+    id: 'e_chapel_vigil',
+    tag: '午后后续',
+    icon: 'fa-church',
+    color: 'text-blue-200',
+    factionId: 'old_nobles',
+    conditionId: 'chapel_vigil_ready',
+    weight: 7,
+    characterIds: ['queen_isabella', 'lord_pei'],
+    title: '圣堂要你做出表率',
+    desc: '你在王家圣堂露面后，主礼者和一群围观贵族顺势递上捐献清单，还暗示如果国王肯公开祈祷并施舍，城里最近的不安和怨气也许能被压下去一点。',
+    choices: [
+      { id: 'chapel_vigil_alms', tierId: 'high', text: '【慷慨施舍】把样子做足，让所有人都看到。 (耗国库, 稳民心)', energy: 14, requirementId: 'always', effectId: 'chapel_vigil_alms', factionEffects: { old_nobles: 2 } },
+      { id: 'chapel_vigil_rite', tierId: 'mid', text: '【庄重从简】祈祷要做，但别把银子全撒出去。 (中耗, 稳态收益)', energy: 8, requirementId: 'always', effectId: 'chapel_vigil_rite', factionEffects: { old_nobles: 1 } },
+      { id: 'chapel_vigil_absent', tierId: 'low', text: '【借口离席】露个面就够了，剩下的让别人替你装。 (省精力, 掉观感)', energy: 0, requirementId: 'always', effectId: 'chapel_vigil_absent', factionEffects: { merchants: 1 } },
     ],
   },
   {
@@ -597,9 +631,11 @@ export const defaultEvent = {
 
 export const locations = [
   { id: 'visit_queen', name: '王后寝宫', icon: 'fa-crown', color: 'text-yellow-400', desc: '陪伴王后，安抚旧贵族。(-少量精力, +权威/民心)', actionId: 'visit_queen', factionEffects: { old_nobles: 2 } },
-  { id: 'visit_mistress', name: '情妇庄园', icon: 'fa-heart', color: 'text-pink-500', desc: '极致享乐，交换政治代价。(-更多国库, 大幅-压力, -权威/民心)', actionId: 'visit_mistress', factionEffects: { merchants: 1 } },
+  { id: 'visit_mistress', name: '教坊司', icon: 'fa-masks-theater', color: 'text-pink-500', desc: '在歌舞与宴饮里买一口喘息。(-更多国库, 大幅-压力, -权威/民心)', actionId: 'visit_mistress', factionEffects: { merchants: 1 } },
   { id: 'visit_hunt', name: '皇家猎场', icon: 'fa-horse', color: 'text-green-600', desc: '与将军们打猎。(-精力/少量国库, +军力/降压)', actionId: 'visit_hunt', factionEffects: { military: 2 } },
   { id: 'visit_spy', name: '情报暗室', icon: 'fa-user-secret', color: 'text-purple-600', desc: '听取流言。(-钱, 获取隐患线索)', actionId: 'visit_spy', factionEffects: { foreign: 1 } },
+  { id: 'visit_treasury', name: '王室账房', icon: 'fa-book-open', color: 'text-amber-400', desc: '翻账、敲打司库、拆东补西。(-精力, +国库/权威, +压力)', actionId: 'visit_treasury', factionEffects: { merchants: 1 } },
+  { id: 'visit_chapel', name: '王家圣堂', icon: 'fa-church', color: 'text-blue-300', desc: '露面祈祷、施舍赎罪，稳住民心与体面。(-精力, +民心/权威, -压力)', actionId: 'visit_chapel', factionEffects: { old_nobles: 1 } },
   { id: 'visit_sleep', name: '寝宫大睡', icon: 'fa-bed', color: 'text-blue-400', desc: '什么都不做，纯躺平。(恢复精力, 降压, 轻微失威)', actionId: 'visit_sleep', factionEffects: {} },
 ];
 

@@ -191,6 +191,8 @@ const eventConditions = {
   mistress_credit_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'mistress_credit_aftermath')) && !getFlag(state, 'mistress_credit_aftermath_seen') && (state.factions.merchants || 0) >= 2,
   hunt_camp_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'hunt_camp_aftermath')) && !getFlag(state, 'hunt_camp_aftermath_seen') && (state.factions.military || 0) >= 2,
   spy_dossier_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'spy_dossier_aftermath')) && !getFlag(state, 'spy_dossier_aftermath_seen') && (state.factions.foreign || 0) >= 1,
+  treasury_audit_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'treasury_audit_aftermath')) && !getFlag(state, 'treasury_audit_aftermath_seen') && (state.factions.merchants || 0) >= 1,
+  chapel_vigil_ready: (state) => state.day > 2 && Boolean(getFlag(state, 'chapel_vigil_aftermath')) && !getFlag(state, 'chapel_vigil_aftermath_seen') && (state.factions.old_nobles || 0) >= 1,
   magic_beast_ready: (state) => state.day > 5 && !getFlag(state, 'beast_seen'),
   corrupt_hand_ready: (state) => state.resources.authority < 60 && !getFlag(state, 'hand_warned'),
 };
@@ -582,6 +584,39 @@ const choiceEffects = {
     resolveAftermath(state, 'spy_dossier_aftermath');
     pushLog(state, '你把密档重新锁回柜里，决定先不动任何人。这份克制让今天轻了些，但王座也不会因为你仁慈就变得更稳。');
   },
+  treasury_audit_seize: (state) => {
+    applyStatChanges(state, { treasury: 10, authority: 6, favor: -3, stress: 6 });
+    setFlag(state, 'merchants_corruption', Math.max(1, getFlag(state, 'merchants_corruption') || 0));
+    resolveAftermath(state, 'treasury_audit_aftermath');
+    pushLog(state, '你顺着账本一路抄下去，硬从库吏和承包商手里撬回一笔银子。国库缓了口气，但不少人也因此恨你入骨。');
+  },
+  treasury_audit_balance: (state) => {
+    applyStatChanges(state, { treasury: 6, authority: 4, stress: 3 });
+    resolveAftermath(state, 'treasury_audit_aftermath');
+    pushLog(state, '你强逼账房把最离谱的窟窿先补平，再把剩下的问题压进下月账册。不好看，但至少今晚账面还能撑住。');
+  },
+  treasury_audit_bury: (state) => {
+    applyStatChanges(state, { authority: -5, stress: -4 });
+    setFlag(state, 'merchants_corruption', Math.max(1, getFlag(state, 'merchants_corruption') || 0));
+    resolveAftermath(state, 'treasury_audit_aftermath');
+    pushLog(state, '你把最难看的几页账本锁回柜底，只留下几句含糊警告。今晚轻松了些，可那笔烂账并没有因此消失。');
+  },
+  chapel_vigil_alms: (state) => {
+    applyStatChanges(state, { treasury: -8, favor: 10, authority: 4, stress: -6 });
+    resolveAftermath(state, 'chapel_vigil_aftermath');
+    pushLog(state, '你当众施舍穷人和修士，圣堂内外都在传国王终于像样了一回。银子花得肉痛，但至少骂声小了几分。');
+  },
+  chapel_vigil_rite: (state) => {
+    applyStatChanges(state, { treasury: -3, favor: 5, authority: 5, stress: -3 });
+    resolveAftermath(state, 'chapel_vigil_aftermath');
+    pushLog(state, '你把礼拜办得庄重却克制。圣职者和围观民众都得到了该看的场面，而你也没把国库整整掏空。');
+  },
+  chapel_vigil_absent: (state) => {
+    applyStatChanges(state, { authority: -5, favor: -4, stress: -2 });
+    setFlag(state, 'hand_power', (getFlag(state, 'hand_power') || 0) + 1);
+    resolveAftermath(state, 'chapel_vigil_aftermath');
+    pushLog(state, '你借口头痛提前离开圣堂，把祷词和施舍都丢给侍从去念。主教没有当面顶撞你，但第二天城里显然多了不少闲话。');
+  },
   beast_raise: (state) => {
     applyStatChanges(state, { treasury: -20, authority: 18, military: 4 });
     setFlag(state, 'has_griffon', 1);
@@ -726,11 +761,11 @@ const locationActions = {
     if (state.resources.treasury >= 20) {
       applyStatChanges(state, { treasury: -20, stress: -28, favor: -8, authority: -5 });
       markAftermath(state, 'mistress_credit_aftermath', 'queued');
-      pushLog(state, '醇酒、音乐与温柔乡让你彻底松了口气，但宫里已经有人开始议论陛下又荒唐了一整晚。');
+      pushLog(state, '教坊司里的醇酒、乐声和暧昧笑语让你彻底松了口气，但宫里也很快开始议论陛下今晚又把正事丢给了别人。');
       return;
     }
 
-    pushLog(state, '【囊中羞涩】情妇因为你没带贵重礼物而给了你闭门羹。');
+    pushLog(state, '【囊中羞涩】教坊司的管事客气地提醒你：账房未曾拨款，今夜恐怕连乐师都不愿为王上多奏一曲。');
     applyStatChanges(state, { stress: 10 });
   },
   visit_hunt: (state) => {
@@ -742,6 +777,16 @@ const locationActions = {
     applyStatChanges(state, { treasury: -5 });
     resolveRumors(state);
     markAftermath(state, 'spy_dossier_aftermath', 'queued');
+  },
+  visit_treasury: (state) => {
+    applyStatChanges(state, { energy: -14, treasury: 8, authority: 4, stress: 6 });
+    markAftermath(state, 'treasury_audit_aftermath', 'queued');
+    pushLog(state, '你在王室账房里翻了半下午烂账，硬逼着司库和承包商把几笔银子先吐了出来。脑子更疼了，但国库至少多喘了一口气。');
+  },
+  visit_chapel: (state) => {
+    applyStatChanges(state, { energy: -10, favor: 7, authority: 4, stress: -8 });
+    markAftermath(state, 'chapel_vigil_aftermath', 'queued');
+    pushLog(state, '你在王家圣堂露了面，陪着做完一套祈祷与施舍的样子。未必真能感动神明，但至少能让城里的人暂时相信王座还没烂透。');
   },
   visit_sleep: (state) => {
     applyStatChanges(state, { energy: 35, stress: -12, authority: -4 });

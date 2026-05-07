@@ -12,7 +12,7 @@ export function AfternoonScreen({ ap, onChooseLocation, onEndAfternoon, locked }
           <span className="mx-2 rounded bg-gray-800 px-2 text-xl font-bold text-blue-400">{ap}</span>
           是去体察民情，还是纵情声色？
         </p>
-        <p className="mt-3 hidden text-sm text-gray-500 xl:block">桌面端支持数字键 1-5 快速移动，按 Enter 可直接回寝宫安歇。</p>
+        <p className="mt-3 hidden text-sm text-gray-500 xl:block">桌面端支持数字键 1-7 快速移动，按 Enter 可直接回寝宫安歇。</p>
       </div>
 
       <div className={`grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 xl:gap-7 ${locked ? 'pointer-events-none opacity-50' : ''}`}>

@@ -206,7 +206,7 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
         ]
       : gameState.phase === 'afternoon'
         ? [
-            { keyLabel: '1-5', description: '快速前往午后地点' },
+            { keyLabel: '1-7', description: '快速前往午后地点' },
             { keyLabel: 'Enter', description: '直接结束午后行动' },
           ]
         : [
