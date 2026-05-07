@@ -1,6 +1,18 @@
 import { CHOICE_TIER_META } from '../../data/gameContent';
 
-export function MorningScreen({ event, availability, onChoose, locked }) {
+function FigureChip({ figure }) {
+  return (
+    <div className="rounded-xl border border-gray-700/80 bg-gray-900/60 px-3 py-2">
+      <div className="flex items-center gap-2 text-sm font-bold text-gray-100">
+        <i className={`fas ${figure.icon} ${figure.accentClass}`} />
+        <span>{figure.name}</span>
+      </div>
+      <div className="mt-1 text-xs text-gray-500">{figure.title}</div>
+    </div>
+  );
+}
+
+export function MorningScreen({ event, availability, onChoose, locked, courtFigures = [] }) {
   return (
     <section className="parchment flex w-full max-w-3xl flex-col rounded-xl p-6 md:p-10 xl:max-w-6xl xl:flex-row xl:gap-8 xl:p-8">
       <div className="xl:flex xl:min-h-full xl:flex-1 xl:flex-col xl:justify-between">
@@ -17,6 +29,15 @@ export function MorningScreen({ event, availability, onChoose, locked }) {
         <p className="mb-8 rounded border-l-4 border-gray-600 bg-gray-800/50 p-4 font-serif text-lg leading-relaxed text-gray-300 xl:mb-0 xl:min-h-[220px] xl:text-[1.15rem] xl:leading-9">
           {event.desc}
         </p>
+
+        {courtFigures.length > 0 ? (
+          <div className="mb-8 xl:mb-0 xl:pt-6">
+            <div className="mb-3 text-xs uppercase tracking-[0.25em] text-gray-500">出场人物</div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {courtFigures.map((figure) => <FigureChip key={figure.id} figure={figure} />)}
+            </div>
+          </div>
+        ) : null}
 
         <div className="hidden xl:flex xl:flex-wrap xl:gap-3 xl:pt-6">
           <span className="rounded-full border border-gray-600 bg-gray-800/60 px-3 py-1 text-xs uppercase tracking-[0.25em] text-gray-400">

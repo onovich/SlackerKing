@@ -31,24 +31,73 @@ export const FACTION_META = {
     icon: 'fa-crown',
     accentClass: 'text-yellow-300',
     summary: '礼制、婚盟与王室体面仍在为你提供基本盘。',
+    characterIds: ['queen_isabella', 'lord_pei'],
   },
   military: {
     label: '军方',
     icon: 'fa-shield-alt',
     accentClass: 'text-red-300',
     summary: '将军和禁卫开始把你视作愿意投入军备的君主。',
+    characterIds: ['general_han'],
   },
   merchants: {
     label: '商会',
     icon: 'fa-coins',
     accentClass: 'text-amber-300',
     summary: '逐利之徒正在从你的统治风格里闻到生意机会。',
+    characterIds: ['guildmaster_shen'],
   },
   foreign: {
     label: '外邦势力',
     icon: 'fa-globe',
     accentClass: 'text-sky-300',
     summary: '外部势力开始把你当成可以施压、交易或试探的对象。',
+    characterIds: ['envoy_ashina'],
+  },
+};
+
+export const CHARACTER_META = {
+  queen_isabella: {
+    name: '伊莎贝拉王后',
+    title: '旧贵族领袖',
+    icon: 'fa-crown',
+    accentClass: 'text-yellow-300',
+    description: '她维系着宗室体面与旧贵族联盟，是你最稳的正统性支点。',
+  },
+  lord_pei: {
+    name: '裴文璟',
+    title: '宗正寺卿',
+    icon: 'fa-scroll',
+    accentClass: 'text-yellow-200',
+    description: '礼法森严的宗室长者，最在乎你是否还像个王。',
+  },
+  general_han: {
+    name: '韩烈',
+    title: '镇北大将军',
+    icon: 'fa-shield-alt',
+    accentClass: 'text-red-300',
+    description: '边军的脸面与胃口都系在他身上，他既能拱卫王座，也能冷眼旁观。',
+  },
+  guildmaster_shen: {
+    name: '沈万金',
+    title: '盐商会首',
+    icon: 'fa-coins',
+    accentClass: 'text-amber-300',
+    description: '只要有利可图，他就愿意替你周转银子，也愿意顺手买下朝廷。',
+  },
+  envoy_ashina: {
+    name: '阿史那使臣',
+    title: '汗国来使',
+    icon: 'fa-globe',
+    accentClass: 'text-sky-300',
+    description: '他带来的不是问候，而是试探、要价和边境阴影。',
+  },
+  spymaster_ruan: {
+    name: '阮青崖',
+    title: '情报总管',
+    icon: 'fa-user-secret',
+    accentClass: 'text-violet-300',
+    description: '他替你提前闻到风暴，也最清楚宫里谁在等你失手。',
   },
 };
 
@@ -146,6 +195,7 @@ export const eventDatabase = [
     color: 'text-red-500',
     conditionId: 'favor_low_no_revolt_cd',
     weight: 10,
+    characterIds: ['lord_pei'],
     title: '抗税暴乱',
     desc: '财政大臣满头大汗地跑来：“陛下，南方行省拒绝缴纳新定的羊毛税！他们不仅赶走了税务官，还烧毁了粮仓！”',
     choices: [
@@ -161,6 +211,7 @@ export const eventDatabase = [
     color: 'text-blue-400',
     conditionId: 'envoy_arrival_ready',
     weight: 8,
+    characterIds: ['envoy_ashina'],
     title: '北方汗国的使节',
     desc: '一个裹着熊皮、浑身膻味的野蛮人使者大步走入大殿，甚至没有单膝下跪。“大汗听说南方的国王软弱可欺。交出十万金币岁币，否则铁蹄踏平此地！”',
     choices: [
@@ -176,6 +227,7 @@ export const eventDatabase = [
     color: 'text-purple-400',
     conditionId: 'envoy_stay_due',
     weight: 100,
+    characterIds: ['envoy_ashina'],
     title: '赖着不走的使者',
     desc: '北方使者已经在宫廷白吃白喝几天了，甚至调戏了女官。他再次上殿催问：“陛下，钱凑够了吗？”',
     choices: [
@@ -191,6 +243,7 @@ export const eventDatabase = [
     factionId: 'old_nobles',
     conditionId: 'old_nobles_rite_ready',
     weight: 6,
+    characterIds: ['queen_isabella', 'lord_pei'],
     title: '宗室请你主持冬祭',
     desc: '几位宗室长者联袂入宫，恳请你亲自主持冬祭，好让朝野都看看王室礼制仍然稳固。他们顺便递上了一份长长的赏赐名单。',
     choices: [
@@ -207,6 +260,7 @@ export const eventDatabase = [
     factionId: 'military',
     conditionId: 'military_petition_ready',
     weight: 6,
+    characterIds: ['general_han'],
     title: '边军请饷',
     desc: '边军统领把一摞军报拍在御案上：军械老旧、军饷拖欠、马匹瘦弱。若再不给银子，前线士气迟早要出问题。',
     choices: [
@@ -223,6 +277,7 @@ export const eventDatabase = [
     factionId: 'merchants',
     conditionId: 'merchants_compact_ready',
     weight: 6,
+    characterIds: ['guildmaster_shen'],
     title: '盐商求牌照',
     desc: '几位盐商会首带着厚礼求见，希望独家承包盐引与运输。他们保证国库会立刻见到银子，只求你别问得太细。',
     choices: [
@@ -239,6 +294,7 @@ export const eventDatabase = [
     factionId: 'foreign',
     conditionId: 'foreign_trade_ready',
     weight: 6,
+    characterIds: ['envoy_ashina'],
     title: '北境互市提案',
     desc: '边境使团递来一份互市与停战提案：开放几处边境贸易点，外加一桩象征性的联姻，他们愿意暂缓边境施压。',
     choices: [
@@ -254,6 +310,7 @@ export const eventDatabase = [
     color: 'text-emerald-500',
     conditionId: 'magic_beast_ready',
     weight: 5,
+    characterIds: ['queen_isabella'],
     title: '进贡的狮鹫幼崽',
     desc: '总督送来一只罕见的魔法生物幼崽，长着鹰头狮身。它极其凶猛，咬伤了三个驯兽师。',
     choices: [
@@ -269,6 +326,7 @@ export const eventDatabase = [
     color: 'text-gray-400',
     conditionId: 'corrupt_hand_ready',
     weight: 8,
+    characterIds: ['guildmaster_shen', 'lord_pei'],
     title: '宰相的夹带',
     desc: '你在批阅一堆公文时，发现宰相偷偷将一项“盐业专卖权”批给了他自己的亲信商人。',
     choices: [
@@ -285,6 +343,7 @@ export const defaultEvent = {
   tag: '日常',
   icon: 'fa-paperclip',
   color: 'text-gray-500',
+  characterIds: ['lord_pei'],
   desc: '一堆鸡毛蒜皮的领地纠纷、税务报表和贵族间的互相攻讦堆在你的桌上。看着就让人头痛。',
   choices: [
     { id: 'daily_review', tierId: 'high', text: '【仔细批阅】耗尽脑汁处理。 (-40精力, +少量权威/国库)', energy: 40, requirementId: 'always', effectId: 'daily_review', factionEffects: { old_nobles: 1 } },

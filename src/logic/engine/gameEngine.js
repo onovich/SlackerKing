@@ -1,4 +1,4 @@
-import { FACTION_META, INITIAL_DAILY_CHANGES, INITIAL_FACTION_STANDINGS, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
+import { CHARACTER_META, FACTION_META, INITIAL_DAILY_CHANGES, INITIAL_FACTION_STANDINGS, INITIAL_STATE, RESOURCE_KEYS, RISK_META, defaultEvent, eventDatabase, locations, nightEvents } from '../../data/gameContent';
 
 function cloneState(state) {
   return {
@@ -687,6 +687,25 @@ export function getFactionOverview(state) {
     ...faction,
     isLeading: leadScore > 0 && faction.score === leadScore,
   }));
+}
+
+export function getCourtFigures(state, event) {
+  const ids = new Set(event?.characterIds ?? []);
+
+  getFactionOverview(state)
+    .filter((faction) => faction.score >= 3)
+    .slice(0, 2)
+    .forEach((faction) => {
+      (FACTION_META[faction.id]?.characterIds ?? []).forEach((id) => ids.add(id));
+    });
+
+  if ((getFlag(state, 'spy_watch_target') || state.phase === 'night') && CHARACTER_META.spymaster_ruan) {
+    ids.add('spymaster_ruan');
+  }
+
+  return Array.from(ids)
+    .map((id) => CHARACTER_META[id] ? ({ id, ...CHARACTER_META[id] }) : null)
+    .filter(Boolean);
 }
 
 export function initializeGameState() {

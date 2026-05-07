@@ -65,6 +65,19 @@ function FactionRow({ faction }) {
   );
 }
 
+function FigureRow({ figure }) {
+  return (
+    <div className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3">
+      <div className="flex items-center gap-2 text-sm font-bold text-gray-100">
+        <i className={`fas ${figure.icon} ${figure.accentClass}`} />
+        <span>{figure.name}</span>
+      </div>
+      <div className="mt-1 text-xs text-gray-500">{figure.title}</div>
+      <p className="mt-2 text-xs leading-5 text-gray-400">{figure.description}</p>
+    </div>
+  );
+}
+
 function getGuidance(gameState, visibleRisks, factionOverview) {
   const lowestResource = Object.entries(gameState.resources).sort((left, right) => left[1] - right[1])[0];
   const highestRisk = visibleRisks[0];
@@ -125,7 +138,7 @@ function getGuidance(gameState, visibleRisks, factionOverview) {
   };
 }
 
-export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factionOverview }) {
+export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factionOverview, courtFigures }) {
   const shortcuts = gameState.isGameOver
     ? [{ keyLabel: 'R', description: '重新开始这一局' }]
     : gameState.phase === 'morning'
@@ -191,6 +204,17 @@ export function DesktopCompanion({ gameState, currentEvent, visibleRisks, factio
           ) : (
             <div className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3 text-sm leading-6 text-gray-300">
               你还没有形成明显的派系倾向。接下来几次晨间和午后选择，会慢慢把路线推向不同势力。
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-xs uppercase tracking-[0.3em] text-gray-500">Key Figures</div>
+          {courtFigures.length > 0 ? (
+            courtFigures.map((figure) => <FigureRow key={figure.id} figure={figure} />)
+          ) : (
+            <div className="rounded-xl border border-gray-700/80 bg-gray-800/60 p-3 text-sm leading-6 text-gray-300">
+              眼下还没有谁真正站到台前。先把路线和危机推出来，人物才会浮上水面。
             </div>
           )}
         </div>

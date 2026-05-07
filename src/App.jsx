@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useGameSession } from './logic/hooks/useGameSession';
-import { getFactionOverview, getVisibleRisks, isMorningChoiceAvailable } from './logic/engine/gameEngine';
+import { getCourtFigures, getFactionOverview, getVisibleRisks, isMorningChoiceAvailable } from './logic/engine/gameEngine';
 import { locations } from './data/gameContent';
 import { TopBar } from './view/components/TopBar';
 import { DesktopCompanion } from './view/components/DesktopCompanion';
@@ -50,6 +50,7 @@ export default function App() {
 
   const visibleRisks = useMemo(() => getVisibleRisks(gameState), [gameState]);
   const factionOverview = useMemo(() => getFactionOverview(gameState), [gameState]);
+  const courtFigures = useMemo(() => getCourtFigures(gameState, currentEvent), [currentEvent, gameState]);
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -113,7 +114,7 @@ export default function App() {
         <TopBar gameState={gameState} visibleRisks={visibleRisks} />
 
         <main className="flex flex-1 overflow-hidden xl:gap-5 xl:overflow-visible xl:pt-4">
-          <DesktopCompanion gameState={gameState} currentEvent={currentEvent} visibleRisks={visibleRisks} factionOverview={factionOverview} />
+          <DesktopCompanion gameState={gameState} currentEvent={currentEvent} visibleRisks={visibleRisks} factionOverview={factionOverview} courtFigures={courtFigures} />
 
           <div
             className="relative flex flex-1 items-center justify-center overflow-y-auto p-4 md:p-8 xl:rounded-[28px] xl:border xl:border-gray-700/80 xl:bg-[radial-gradient(circle_at_top,_rgba(74,85,104,0.28),_rgba(18,20,26,0.95)_55%)] xl:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
@@ -129,6 +130,7 @@ export default function App() {
                 availability={choiceAvailability}
                 onChoose={chooseMorningOption}
                 locked={choiceLocked}
+                courtFigures={courtFigures}
               />
             ) : null}
 
