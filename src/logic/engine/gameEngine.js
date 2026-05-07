@@ -161,9 +161,13 @@ const eventConditions = {
   envoy_arrival_ready: (state) => state.day > 3 && !getFlag(state, 'envoy_active') && !getFlag(state, 'envoy_cd'),
   envoy_stay_due: (state) => (getFlag(state, 'envoy_active') ?? 0) >= 3,
   old_nobles_rite_ready: (state) => state.day > 3 && (state.factions.old_nobles || 0) >= 3 && !getFlag(state, 'old_nobles_cd'),
+  old_nobles_patronage_ready: (state) => Boolean(getFlag(state, 'old_nobles_aftermath')) && !getFlag(state, 'old_nobles_aftermath_seen'),
   military_petition_ready: (state) => state.day > 3 && (state.factions.military || 0) >= 3 && !getFlag(state, 'military_cd'),
+  military_honor_ready: (state) => Boolean(getFlag(state, 'military_aftermath')) && !getFlag(state, 'military_aftermath_seen'),
   merchants_compact_ready: (state) => state.day > 3 && (state.factions.merchants || 0) >= 3 && !getFlag(state, 'merchants_cd'),
+  merchants_extension_ready: (state) => Boolean(getFlag(state, 'merchants_aftermath')) && !getFlag(state, 'merchants_aftermath_seen'),
   foreign_trade_ready: (state) => state.day > 3 && (state.factions.foreign || 0) >= 3 && !getFlag(state, 'foreign_cd'),
+  foreign_marriage_ready: (state) => Boolean(getFlag(state, 'foreign_aftermath')) && !getFlag(state, 'foreign_aftermath_seen'),
   magic_beast_ready: (state) => state.day > 5 && !getFlag(state, 'beast_seen'),
   corrupt_hand_ready: (state) => state.resources.authority < 60 && !getFlag(state, 'hand_warned'),
 };
@@ -248,49 +252,123 @@ const choiceEffects = {
   nobles_grand_rite: (state) => {
     applyStatChanges(state, { treasury: -12, authority: 14, favor: 6, stress: 8 });
     setFlag(state, 'old_nobles_cd', 6);
+    setFlag(state, 'old_nobles_aftermath', 'granted');
+    deleteFlag(state, 'old_nobles_aftermath_seen');
     pushLog(state, '冬祭办得极尽铺张，宗室和旧贵族都被你的排场安抚住了。朝野重新想起，这个王朝毕竟还姓你的姓。');
   },
   nobles_trimmed_rite: (state) => {
     applyStatChanges(state, { treasury: -6, authority: 7, favor: 4, stress: 4 });
     setFlag(state, 'old_nobles_cd', 5);
+    setFlag(state, 'old_nobles_aftermath', 'trimmed');
+    deleteFlag(state, 'old_nobles_aftermath_seen');
     pushLog(state, '你把冬祭办得体面而克制。宗室虽嫌寒酸，却也挑不出大错。');
   },
   nobles_proxy_rite: (state) => {
     applyStatChanges(state, { authority: -8, favor: -4, stress: -4 });
     setFlag(state, 'old_nobles_cd', 4);
+    setFlag(state, 'old_nobles_aftermath', 'snubbed');
+    deleteFlag(state, 'old_nobles_aftermath_seen');
     setFlag(state, 'hand_power', (getFlag(state, 'hand_power') || 0) + 1);
     pushLog(state, '你把礼仪丢给礼官代办。宗室脸上挂着笑，背地里却开始怀疑你是否还配坐在祖庙前。');
+  },
+  nobles_patronage_yes: (state) => {
+    applyStatChanges(state, { treasury: -10, authority: 10, favor: 4, stress: 5 });
+    deleteFlag(state, 'old_nobles_aftermath');
+    setFlag(state, 'old_nobles_aftermath_seen', 1);
+    pushLog(state, '王后满意地收起名单。宗室上下都觉得你还懂得什么叫做王室恩典。');
+  },
+  nobles_patronage_trim: (state) => {
+    applyStatChanges(state, { treasury: -4, authority: 5, favor: 2, stress: 2 });
+    deleteFlag(state, 'old_nobles_aftermath');
+    setFlag(state, 'old_nobles_aftermath_seen', 1);
+    pushLog(state, '你把封赏名单压缩了一半。王后并不满意，但至少裴文璟承认你还算留了体面。');
+  },
+  nobles_patronage_no: (state) => {
+    applyStatChanges(state, { authority: -8, favor: -4 });
+    deleteFlag(state, 'old_nobles_aftermath');
+    setFlag(state, 'old_nobles_aftermath_seen', 1);
+    setFlag(state, 'hand_power', (getFlag(state, 'hand_power') || 0) + 1);
+    pushLog(state, '你把名单推了回去。王后没再说什么，但宗室席间很快又开始传出“陛下只会摆样子”的冷笑。');
   },
   military_full_fund: (state) => {
     applyStatChanges(state, { treasury: -14, military: 15, authority: 4, stress: 6 });
     setFlag(state, 'military_cd', 6);
+    setFlag(state, 'military_aftermath', 'funded');
+    deleteFlag(state, 'military_aftermath_seen');
     pushLog(state, '银子一车车送去边军大营。将领们对你感恩戴德，至少这几个月里不会有人在军中说你是纸糊的国王。');
   },
   military_field_games: (state) => {
     applyStatChanges(state, { treasury: -6, military: 8, authority: 5, stress: -4 });
     setFlag(state, 'military_cd', 5);
+    setFlag(state, 'military_aftermath', 'reviewed');
+    deleteFlag(state, 'military_aftermath_seen');
     pushLog(state, '你亲临校场，赏了几名勇士，顺手给将军们画了几张大饼。军心确实稳住了一阵。');
   },
   military_delay_pay: (state) => {
     applyStatChanges(state, { authority: -5, military: -10 });
     setFlag(state, 'military_cd', 4);
+    setFlag(state, 'military_aftermath', 'delayed');
+    deleteFlag(state, 'military_aftermath_seen');
     setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
     pushLog(state, '你让户部再拖一个月。将领嘴上称是，军报里却已经开始出现边军逃亡与哗变的字眼。');
+  },
+  military_honor_grant: (state) => {
+    applyStatChanges(state, { treasury: -8, military: 8, authority: 4 });
+    deleteFlag(state, 'military_aftermath');
+    setFlag(state, 'military_aftermath_seen', 1);
+    pushLog(state, '韩烈得了你给足的面子，也替你把军中的躁气压了下去。至少短期内，这支军队还认你这个王。');
+  },
+  military_honor_words: (state) => {
+    applyStatChanges(state, { military: 4, authority: 3, stress: 2 });
+    deleteFlag(state, 'military_aftermath');
+    setFlag(state, 'military_aftermath_seen', 1);
+    pushLog(state, '你给了军中一场像样的表彰，却只发了有限的赏银。韩烈看得出你在抠门，但也知道此刻不宜翻脸。');
+  },
+  military_honor_refuse: (state) => {
+    applyStatChanges(state, { authority: -6, military: -8 });
+    deleteFlag(state, 'military_aftermath');
+    setFlag(state, 'military_aftermath_seen', 1);
+    setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
+    pushLog(state, '你把韩烈连人带名单一起打发了回去。军中暂时没闹，但失望正在一点点积起来。');
   },
   merchants_open_charter: (state) => {
     applyStatChanges(state, { treasury: 18, authority: -8, favor: -6, stress: -4 });
     setFlag(state, 'merchants_cd', 6);
+    setFlag(state, 'merchants_aftermath', 'expanded');
+    deleteFlag(state, 'merchants_aftermath_seen');
     pushLog(state, '盐商们笑着抬走了牌照，也顺手抬走了一部分朝廷脸面。银子是真的进了库，但百姓骂声也是真的。');
   },
   merchants_raise_loan: (state) => {
     applyStatChanges(state, { treasury: 10, authority: 2, stress: 4 });
     setFlag(state, 'merchants_cd', 5);
+    setFlag(state, 'merchants_aftermath', 'loaned');
+    deleteFlag(state, 'merchants_aftermath_seen');
     pushLog(state, '商会很爽快地把钱垫上了，当然，他们的账房先生也把利息写得清清楚楚。');
   },
   merchants_raids: (state) => {
     applyStatChanges(state, { treasury: 6, authority: 6, favor: 4 });
     setFlag(state, 'merchants_cd', 4);
+    setFlag(state, 'merchants_aftermath', 'taxed');
+    deleteFlag(state, 'merchants_aftermath_seen');
     pushLog(state, '你先拿最肥的几家开刀。围观百姓拍手叫好，但剩下的商人也开始悄悄把银子往外搬。');
+  },
+  merchants_extension_yes: (state) => {
+    applyStatChanges(state, { treasury: 16, authority: -8, favor: -6 });
+    deleteFlag(state, 'merchants_aftermath');
+    setFlag(state, 'merchants_aftermath_seen', 1);
+    pushLog(state, '沈万金几乎是笑着退下的。银子又一次涌进来了，只是你也越来越分不清这到底是商会在为你服务，还是你在替商会撑腰。');
+  },
+  merchants_extension_audit: (state) => {
+    applyStatChanges(state, { treasury: 8, authority: 4, stress: 4 });
+    deleteFlag(state, 'merchants_aftermath');
+    setFlag(state, 'merchants_aftermath_seen', 1);
+    pushLog(state, '你没立刻续约，而是先派人查账。沈万金嘴上恭敬，心里显然已经在盘算该去打点谁。');
+  },
+  merchants_extension_tax: (state) => {
+    applyStatChanges(state, { treasury: 6, favor: 4, authority: 3 });
+    deleteFlag(state, 'merchants_aftermath');
+    setFlag(state, 'merchants_aftermath_seen', 1);
+    pushLog(state, '你反手给商会加了一刀税。百姓拍手称快，沈万金却把笑意收了个干净。');
   },
   foreign_sign_treaty: (state) => {
     applyStatChanges(state, { treasury: 12, favor: 4, military: -6, authority: -4 });
@@ -298,19 +376,47 @@ const choiceEffects = {
     deleteFlag(state, 'khan_war');
     setFlag(state, 'envoy_cd', 10);
     setFlag(state, 'foreign_cd', 6);
+    setFlag(state, 'foreign_aftermath', 'treaty');
+    deleteFlag(state, 'foreign_aftermath_seen');
     pushLog(state, '互市与停战条款签了下去。边境总算安静了些，但朝堂里已经有人开始嘀咕你是不是在拿王朝面子做生意。');
   },
   foreign_buy_time: (state) => {
     applyStatChanges(state, { treasury: -4, authority: -4 });
     setFlag(state, 'foreign_cd', 4);
+    setFlag(state, 'foreign_aftermath', 'delay');
+    deleteFlag(state, 'foreign_aftermath_seen');
     setFlag(state, 'envoy_active', Math.max(1, getFlag(state, 'envoy_active') || 0));
     pushLog(state, '你又把使团安抚了一轮。今天是拖过去了，可边境那头显然还会回来继续要价。');
   },
   foreign_refuse_terms: (state) => {
     applyStatChanges(state, { authority: 6, military: 6, stress: 6 });
     setFlag(state, 'foreign_cd', 5);
+    setFlag(state, 'foreign_aftermath', 'refused');
+    deleteFlag(state, 'foreign_aftermath_seen');
     setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
     pushLog(state, '你把提案撕成两半扔回使团脸上。朝堂上一阵叫好，只是边境烽火也跟着更近了一步。');
+  },
+  foreign_marriage_accept: (state) => {
+    applyStatChanges(state, { authority: -8, favor: 4, military: -4 });
+    deleteFlag(state, 'foreign_aftermath');
+    setFlag(state, 'foreign_aftermath_seen', 1);
+    deleteFlag(state, 'envoy_active');
+    setFlag(state, 'envoy_cd', 12);
+    pushLog(state, '你把联姻条件暂时答应了下来。边境压力立刻缓和了一截，但宫里对你“卖婚求安”的议论也压不下去了。');
+  },
+  foreign_marriage_delay: (state) => {
+    applyStatChanges(state, { treasury: -4, authority: -4 });
+    deleteFlag(state, 'foreign_aftermath');
+    setFlag(state, 'foreign_aftermath_seen', 1);
+    setFlag(state, 'envoy_active', Math.max(1, getFlag(state, 'envoy_active') || 0));
+    pushLog(state, '你把联姻话题继续往后拖。阿史那嘴上还算客气，可他显然把这当成了另一次抬价的机会。');
+  },
+  foreign_marriage_reject: (state) => {
+    applyStatChanges(state, { authority: 6, military: 6, stress: 6 });
+    deleteFlag(state, 'foreign_aftermath');
+    setFlag(state, 'foreign_aftermath_seen', 1);
+    setFlag(state, 'khan_war', Math.max(1, getFlag(state, 'khan_war') || 0));
+    pushLog(state, '你拒绝拿王室婚事做筹码。阿史那收起了笑，边境也重新闻到了火药味。');
   },
   beast_raise: (state) => {
     applyStatChanges(state, { treasury: -20, authority: 18, military: 4 });
